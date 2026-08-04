@@ -75,8 +75,8 @@ function PayrollPage() {
                   fontSize: 12,
                 }}
               />
-              <Line type="monotone" dataKey="gross" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
-              <Line type="monotone" dataKey="net" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} />
+              <Line type="monotone" dataKey="gross" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+              <Line type="monotone" dataKey="net" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

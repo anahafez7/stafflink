@@ -120,9 +120,9 @@ function Dashboard() {
                 <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                 <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--accent)", opacity: 0.4 }} />
-                <Bar dataKey="present" stackId="a" fill="var(--chart-1)" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="late" stackId="a" fill="var(--chart-4)" />
-                <Bar dataKey="absent" stackId="a" fill="var(--chart-5)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="present" stackId="a" fill="var(--chart-1)" isAnimationActive={false} />
+                <Bar dataKey="late" stackId="a" fill="var(--chart-4)" isAnimationActive={false} />
+                <Bar dataKey="absent" stackId="a" fill="var(--chart-5)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -133,7 +133,7 @@ function Dashboard() {
           <div className="mt-2 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={departmentSplit} dataKey="value" nameKey="name" innerRadius={48} outerRadius={72} paddingAngle={3}>
+                <Pie data={departmentSplit} dataKey="value" nameKey="name" innerRadius={48} outerRadius={72} paddingAngle={3} isAnimationActive={false}>
                   {departmentSplit.map((entry, i) => (
                     <Cell key={entry.name} fill={pieColors[i % pieColors.length]} />
                   ))}
@@ -177,8 +177,8 @@ function Dashboard() {
                 <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                 <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="annual" stroke="var(--chart-1)" fill="url(#annual)" strokeWidth={2} />
-                <Area type="monotone" dataKey="sick" stroke="var(--chart-4)" fill="transparent" strokeWidth={2} />
+                <Area type="monotone" dataKey="annual" stroke="var(--chart-1)" fill="url(#annual)" strokeWidth={2} isAnimationActive={false} />
+                <Area type="monotone" dataKey="sick" stroke="var(--chart-4)" fill="transparent" strokeWidth={2} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
