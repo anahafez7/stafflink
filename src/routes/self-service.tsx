@@ -85,7 +85,7 @@ function SelfServicePage() {
   const [punchIn, setPunchIn] = useState<string | null>(null);
   const [punchOut, setPunchOut] = useState<string | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const [leaveType, setLeaveType] = useState(leaveBalances[0].type);
+  const [leaveType, setLeaveType] = useState(leaveBalances[0]?.type ?? "Annual");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const now = useNow();
