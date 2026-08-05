@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, FileText, HardDrive, Scan, Search, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AlertTriangle, Download, FileText, HardDrive, RefreshCw, Scan, Search, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/layout/stat-card";
+import { BulkBar } from "@/components/data/bulk-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSelection } from "@/hooks/use-selection";
 import { documentsList } from "@/data/modules";
 
 export const Route = createFileRoute("/documents")({
@@ -33,6 +38,43 @@ const docStatus: Record<string, string> = {
 const categories = ["All", "Contract", "Identity", "Certificate", "Licence", "Policy"];
 
 function DocumentsPage() {
+  const [rows, setRows] = useState(documentsList);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+
+  const filtered = useMemo(() => {
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return rows.filter((d) => {
+      if (category !== "All" && d.category !== category) return false;
+      if (!terms.length) return true;
+      const haystack = [d.name, d.employee, d.category, d.status, d.version].join(" ").toLowerCase();
+      return terms.every((t) => haystack.includes(t));
+    });
+  }, [rows, query, category]);
+
+  const ids = useMemo(() => filtered.map((d) => d.name), [filtered]);
+  const selection = useSelection(ids);
+
+  const bulkRenew = () => {
+    const count = selection.count;
+    setRows((prev) =>
+      prev.map((d) =>
+        selection.isSelected(d.name)
+          ? { ...d, status: "Valid", version: `v${Number(d.version.replace("v", "")) + 1}` }
+          : d,
+      ),
+    );
+    selection.clear();
+    toast.success(`Renewed ${count} document${count === 1 ? "" : "s"} — new version created`);
+  };
+
+  const bulkDelete = () => {
+    const count = selection.count;
+    setRows((prev) => prev.filter((d) => !selection.isSelected(d.name)));
+    selection.clear();
+    toast.success(`${count} document${count === 1 ? "" : "s"} archived`);
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -40,7 +82,7 @@ function DocumentsPage() {
         title="Document vault"
         description="14,802 files · 23 documents expiring within 30 days."
         actions={
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={() => toast.info("Drop files here to upload — OCR runs automatically.")}>
             <Upload className="size-4" />
             <span>Upload document</span>
           </Button>
@@ -58,21 +100,60 @@ function DocumentsPage() {
         <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search files, employees or OCR text…" aria-label="Search documents" className="h-10 rounded-xl pl-9" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value.slice(0, 100))}
+              placeholder="Search files, employees or OCR text…"
+              aria-label="Search documents"
+              className="h-10 rounded-xl pl-9"
+            />
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {categories.map((c, i) => (
-              <Button key={c} variant={i === 0 ? "default" : "outline"} size="sm" className="rounded-lg">
+            {categories.map((c) => (
+              <Button
+                key={c}
+                variant={c === category ? "default" : "outline"}
+                size="sm"
+                className="rounded-lg"
+                onClick={() => setCategory(c)}
+              >
                 {c}
               </Button>
             ))}
           </div>
         </div>
 
+        <BulkBar count={selection.count} noun="document" onClear={selection.clear}>
+          <Button size="sm" variant="outline" className="rounded-lg" onClick={bulkRenew}>
+            <RefreshCw className="size-4" />
+            <span>Renew / new version</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-lg"
+            onClick={() => toast.success(`Downloading ${selection.count} file(s) as ZIP`)}
+          >
+            <Download className="size-4" />
+            <span>Download</span>
+          </Button>
+          <Button size="sm" variant="destructive" className="rounded-lg" onClick={bulkDelete}>
+            <Trash2 className="size-4" />
+            <span>Archive</span>
+          </Button>
+        </BulkBar>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-secondary">
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    aria-label="Select all documents"
+                    checked={selection.allSelected}
+                    onCheckedChange={selection.toggleAll}
+                  />
+                </TableHead>
                 <TableHead>Document</TableHead>
                 <TableHead>Owner</TableHead>
                 <TableHead>Category</TableHead>
@@ -83,8 +164,22 @@ function DocumentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documentsList.map((d) => (
-                <TableRow key={d.name}>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                    No documents match this search.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+              {filtered.map((d) => (
+                <TableRow key={d.name} data-state={selection.isSelected(d.name) ? "selected" : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      aria-label={`Select ${d.name}`}
+                      checked={selection.isSelected(d.name)}
+                      onCheckedChange={() => selection.toggle(d.name)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
                       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
