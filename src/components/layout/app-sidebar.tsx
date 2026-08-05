@@ -26,27 +26,29 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useAuth, type ModuleKey } from "@/lib/auth";
 
 const workspace = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "HR", url: "/hr", icon: Users },
-  { title: "Attendance", url: "/attendance", icon: Fingerprint },
-  { title: "Payroll", url: "/payroll", icon: Wallet },
-  { title: "Recruitment", url: "/recruitment", icon: UserSearch },
-  { title: "Performance", url: "/performance", icon: Target },
-  { title: "Documents", url: "/documents", icon: FolderOpen },
-  { title: "Self Service", url: "/self-service", icon: UserCog },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
+  { title: "HR", url: "/hr", icon: Users, module: "hr" },
+  { title: "Attendance", url: "/attendance", icon: Fingerprint, module: "attendance" },
+  { title: "Payroll", url: "/payroll", icon: Wallet, module: "payroll" },
+  { title: "Recruitment", url: "/recruitment", icon: UserSearch, module: "recruitment" },
+  { title: "Performance", url: "/performance", icon: Target, module: "performance" },
+  { title: "Documents", url: "/documents", icon: FolderOpen, module: "documents" },
+  { title: "Self Service", url: "/self-service", icon: UserCog, module: "self-service" },
+  { title: "Analytics", url: "/analytics", icon: BarChart3, module: "analytics" },
 ] as const;
 
 const administration = [
-  { title: "Settings", url: "/settings", icon: Settings },
-  { title: "Users & Permissions", url: "/users", icon: ShieldCheck },
-  { title: "Locations", url: "/locations", icon: MapPin },
+  { title: "Settings", url: "/settings", icon: Settings, module: "settings" },
+  { title: "Users & Permissions", url: "/users", icon: ShieldCheck, module: "users" },
+  { title: "Locations", url: "/locations", icon: MapPin, module: "locations" },
 ] as const;
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { can } = useAuth();
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
   return (
@@ -69,9 +71,11 @@ export function AppSidebar() {
 
       <SidebarContent>
         {[
-          { label: "Workspace", items: workspace },
-          { label: "Administration", items: administration },
-        ].map((group) => (
+          { label: "Workspace", items: workspace.filter((i) => can(i.module as ModuleKey)) },
+          { label: "Administration", items: administration.filter((i) => can(i.module as ModuleKey)) },
+        ]
+          .filter((group) => group.items.length > 0)
+          .map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-sidebar-foreground/50">
               {group.label}

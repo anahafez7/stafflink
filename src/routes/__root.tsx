@@ -15,6 +15,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { LoginScreen } from "@/components/auth/login-screen";
+import { AccessGuard } from "@/components/auth/access-guard";
 
 function NotFoundComponent() {
   return (
@@ -136,19 +139,39 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-dvh w-full bg-background">
-          <AppSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Topbar />
-            <main className="min-w-0 flex-1 p-3 sm:p-5">
+      <AuthProvider>
+        <AppShell />
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const { user, ready } = useAuth();
+
+  if (!ready) {
+    return <div className="min-h-dvh bg-background" />;
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-dvh w-full bg-background">
+        <AppSidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="min-w-0 flex-1 p-3 sm:p-5">
+            <AccessGuard>
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <Outlet />
-            </main>
-          </div>
+            </AccessGuard>
+          </main>
         </div>
-        <Toaster />
-      </SidebarProvider>
-    </QueryClientProvider>
+      </div>
+    </SidebarProvider>
   );
 }
