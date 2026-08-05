@@ -1,6 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { CalendarDays, Check, Clock, Download, FileText, Megaphone, Plus, Search, Wallet, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CalendarDays,
+  Check,
+  Clock,
+  Download,
+  FileText,
+  LogIn,
+  LogOut,
+  Megaphone,
+  Plus,
+  Search,
+  Wallet,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -11,8 +24,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSelection } from "@/hooks/use-selection";
-import { announcements, leaveBalances, myRequests, payslips } from "@/data/modules";
+import { announcements, leaveBalances, myPunchLog, myRequests, payslips } from "@/data/modules";
 
 export const Route = createFileRoute("/self-service")({
   head: () => ({
@@ -42,9 +65,77 @@ const quickActions = [
   { label: "Download forms", icon: FileText },
 ];
 
+const clockTime = () =>
+  new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+
+function useNow() {
+  const [now, setNow] = useState<string>("--:--");
+  useEffect(() => {
+    setNow(clockTime());
+    const id = window.setInterval(() => setNow(clockTime()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return now;
+}
+
 function SelfServicePage() {
   const [requests, setRequests] = useState(myRequests);
   const [query, setQuery] = useState("");
+  const [balances, setBalances] = useState(leaveBalances);
+  const [punchIn, setPunchIn] = useState<string | null>(null);
+  const [punchOut, setPunchOut] = useState<string | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaveType, setLeaveType] = useState(leaveBalances[0].type);
+  const [leaveFrom, setLeaveFrom] = useState("");
+  const [leaveTo, setLeaveTo] = useState("");
+  const now = useNow();
+
+  const handlePunch = () => {
+    if (!punchIn) {
+      const t = clockTime();
+      setPunchIn(t);
+      toast.success(`Checked in at ${t}`);
+      return;
+    }
+    if (!punchOut) {
+      const t = clockTime();
+      setPunchOut(t);
+      toast.success(`Checked out at ${t}`);
+      return;
+    }
+    toast.info("You already completed today's shift.");
+  };
+
+  const submitLeave = () => {
+    if (!leaveFrom || !leaveTo) {
+      toast.error("Pick a start and end date.");
+      return;
+    }
+    const start = new Date(leaveFrom);
+    const end = new Date(leaveTo);
+    if (end < start) {
+      toast.error("End date must be after the start date.");
+      return;
+    }
+    const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    const balance = balances.find((b) => b.type === leaveType);
+    if (balance && balance.used + days > balance.total) {
+      toast.error(`Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`);
+      return;
+    }
+    const id = `REQ-${String(1000 + requests.length + 1)}`;
+    setRequests((prev) => [
+      { id, type: `${leaveType} leave`, period: `${leaveFrom} → ${leaveTo}`, days, status: "Pending" },
+      ...prev,
+    ]);
+    setBalances((prev) =>
+      prev.map((b) => (b.type === leaveType ? { ...b, used: b.used + days } : b)),
+    );
+    setLeaveOpen(false);
+    setLeaveFrom("");
+    setLeaveTo("");
+    toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+  };
 
   const filtered = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -72,12 +163,98 @@ function SelfServicePage() {
         title="Employee self service"
         description="Everything an employee needs, in three clicks or fewer."
         actions={
-          <Button variant="secondary" onClick={() => toast.info("Pick a request type below to submit in seconds.")}>
+          <Button variant="secondary" onClick={() => setLeaveOpen(true)}>
             <Plus className="size-4" />
             <span>New request</span>
           </Button>
         }
       />
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
+        <section className="surface-card p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">Check in / out</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Cairo HQ · Web punch</p>
+            </div>
+            <span className="text-2xl font-semibold tabular-nums">{now}</span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Checked in</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">{punchIn ?? "—"}</p>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Checked out</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">{punchOut ?? "—"}</p>
+            </div>
+          </div>
+
+          <Button
+            className="mt-4 w-full"
+            variant={punchIn && !punchOut ? "destructive" : "default"}
+            disabled={Boolean(punchIn && punchOut)}
+            onClick={handlePunch}
+          >
+            {punchIn && !punchOut ? <LogOut className="size-4" /> : <LogIn className="size-4" />}
+            <span>{!punchIn ? "Check in" : !punchOut ? "Check out" : "Shift completed"}</span>
+          </Button>
+
+          <ul className="mt-4 divide-y divide-border">
+            {myPunchLog.map((d) => (
+              <li key={d.day} className="flex items-center gap-3 py-2 text-sm">
+                <span className="w-10 shrink-0 text-muted-foreground">{d.day}</span>
+                <span className="tabular-nums">
+                  {d.in} – {d.out}
+                </span>
+                <span className="ml-auto tabular-nums text-muted-foreground">{d.hours}</span>
+                <Badge
+                  variant="outline"
+                  className={
+                    d.state === "Late"
+                      ? "border-warning/40 text-warning"
+                      : d.state === "Overtime"
+                        ? "border-brand/40 text-brand"
+                        : "border-success/40 text-success"
+                  }
+                >
+                  {d.state}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="surface-card p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">Leaves</h2>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setLeaveOpen(true)}>
+              <CalendarDays className="size-4" />
+              <span>Request leave</span>
+            </Button>
+          </div>
+          <ul className="mt-4 space-y-4">
+            {balances.map((b) => (
+              <li key={b.type}>
+                <div className="flex items-center justify-between text-sm">
+                  <span>{b.type}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {b.total - b.used} of {b.total} days left
+                  </span>
+                </div>
+                <Progress value={(b.used / b.total) * 100} className="mt-1.5 h-1.5" />
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Upcoming approved leave</p>
+            <p className="mt-1 text-sm font-medium">
+              {requests.find((r) => r.status === "Approved")?.period ?? "No approved leave scheduled"}
+            </p>
+          </div>
+        </section>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {quickActions.map((a) => (
@@ -180,24 +357,25 @@ function SelfServicePage() {
         </section>
 
         <section className="surface-card p-5">
-          <h2 className="text-sm font-semibold">Leave balances</h2>
-          <ul className="mt-4 space-y-4">
-            {leaveBalances.map((b) => (
-              <li key={b.type}>
-                <div className="flex items-center justify-between text-sm">
-                  <span>{b.type}</span>
-                  <span className="tabular-nums text-muted-foreground">
-                    {b.total - b.used} of {b.total} days left
-                  </span>
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Megaphone className="size-4 text-primary" />
+            Announcements
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {announcements.map((a) => (
+              <li key={a.title} className="rounded-xl border border-border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="min-w-0 text-sm font-medium">{a.title}</p>
+                  <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
                 </div>
-                <Progress value={(b.used / b.total) * 100} className="mt-1.5 h-1.5" />
+                <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
               </li>
             ))}
           </ul>
         </section>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4">
         <section className="surface-card p-5">
           <h2 className="text-sm font-semibold">Payslips</h2>
           <ul className="mt-3 divide-y divide-border">
@@ -217,25 +395,49 @@ function SelfServicePage() {
             ))}
           </ul>
         </section>
-
-        <section className="surface-card p-5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <Megaphone className="size-4 text-primary" />
-            Announcements
-          </h2>
-          <ul className="mt-3 space-y-3">
-            {announcements.map((a) => (
-              <li key={a.title} className="rounded-xl border border-border p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="min-w-0 text-sm font-medium">{a.title}</p>
-                  <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
       </div>
+
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request leave</DialogTitle>
+            <DialogDescription>Submit a leave request for manager approval.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="leave-type">Leave type</Label>
+              <Select value={leaveType} onValueChange={setLeaveType}>
+                <SelectTrigger id="leave-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {balances.map((b) => (
+                    <SelectItem key={b.type} value={b.type}>
+                      {b.type} · {b.total - b.used} left
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="leave-from">From</Label>
+                <Input id="leave-from" type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="leave-to">To</Label>
+                <Input id="leave-to" type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLeaveOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={submitLeave}>Submit request</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
