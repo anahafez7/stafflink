@@ -1,13 +1,15 @@
-import { Bell, Globe, MessageSquare, Moon, Search, Sun } from "lucide-react";
+import { Bell, Globe, LogOut, MessageSquare, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { roleLabels, useAuth } from "@/lib/auth";
 
 export function Topbar() {
   const [dark, setDark] = useState(false);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -49,13 +51,26 @@ export function Topbar() {
 
         <div className="ml-1 flex items-center gap-2 rounded-xl border border-border px-2 py-1.5">
           <Avatar className="size-7">
-            <AvatarFallback className="bg-brand text-brand-foreground text-[11px]">HR</AvatarFallback>
+            <AvatarFallback className="bg-brand text-brand-foreground text-[11px]">
+              {user?.initials ?? "SL"}
+            </AvatarFallback>
           </Avatar>
           <span className="hidden leading-tight md:block">
-            <span className="block text-xs font-semibold">Hafez Rahim</span>
-            <span className="block text-[11px] text-muted-foreground">HR Director</span>
+            <span className="block text-xs font-semibold">{user?.name ?? "Guest"}</span>
+            <span className="block text-[11px] text-muted-foreground">
+              {user ? roleLabels[user.role] : ""}
+            </span>
           </span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Sign out"
+          className="min-h-11 min-w-11"
+          onClick={signOut}
+        >
+          <LogOut className="size-4" />
+        </Button>
       </div>
     </header>
   );
