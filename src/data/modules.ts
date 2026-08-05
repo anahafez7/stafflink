@@ -114,6 +114,13 @@ export const leaveBalances = [
   { type: "Casual", used: 3, total: 7 },
 ];
 
+export const myPunchLog = [
+  { day: "Mon", in: "08:41", out: "17:12", hours: "8h 31m", state: "On time" },
+  { day: "Tue", in: "09:06", out: "17:30", hours: "8h 24m", state: "Late" },
+  { day: "Wed", in: "08:38", out: "17:05", hours: "8h 27m", state: "On time" },
+  { day: "Thu", in: "08:52", out: "18:02", hours: "9h 10m", state: "Overtime" },
+];
+
 export const settingsGroups = [
   {
     title: "Organization",
