@@ -1,11 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Clock, Download, FileText, Megaphone, Plus, Wallet } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CalendarDays, Check, Clock, Download, FileText, Megaphone, Plus, Search, Wallet, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { BulkBar } from "@/components/data/bulk-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSelection } from "@/hooks/use-selection";
 import { announcements, leaveBalances, myRequests, payslips } from "@/data/modules";
 
 export const Route = createFileRoute("/self-service")({
@@ -37,6 +43,28 @@ const quickActions = [
 ];
 
 function SelfServicePage() {
+  const [requests, setRequests] = useState(myRequests);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return requests;
+    return requests.filter((r) => {
+      const haystack = [r.id, r.type, r.period, r.status].join(" ").toLowerCase();
+      return terms.every((t) => haystack.includes(t));
+    });
+  }, [requests, query]);
+
+  const ids = useMemo(() => filtered.map((r) => r.id), [filtered]);
+  const selection = useSelection(ids);
+
+  const bulkSet = (status: string) => {
+    const count = selection.count;
+    setRequests((prev) => prev.map((r) => (selection.isSelected(r.id) ? { ...r, status } : r)));
+    selection.clear();
+    toast.success(`${count} request${count === 1 ? "" : "s"} ${status.toLowerCase()}`);
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -44,7 +72,7 @@ function SelfServicePage() {
         title="Employee self service"
         description="Everything an employee needs, in three clicks or fewer."
         actions={
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={() => toast.info("Pick a request type below to submit in seconds.")}>
             <Plus className="size-4" />
             <span>New request</span>
           </Button>
@@ -56,6 +84,7 @@ function SelfServicePage() {
           <button
             key={a.label}
             type="button"
+            onClick={() => toast.success(`${a.label} form opened`)}
             className="surface-card flex items-center gap-3 p-4 text-left transition-shadow hover:shadow-[var(--shadow-lift)]"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
@@ -71,13 +100,45 @@ function SelfServicePage() {
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <section className="surface-card overflow-hidden">
-          <div className="border-b border-border p-4">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
             <h2 className="text-sm font-semibold">My requests</h2>
+            <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value.slice(0, 100))}
+                placeholder="Search requests…"
+                aria-label="Search requests"
+                className="h-9 rounded-xl pl-9"
+              />
+            </div>
           </div>
+
+          <BulkBar count={selection.count} noun="request" onClear={selection.clear}>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
+              <Check className="size-4" />
+              <span>Approve</span>
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
+              <X className="size-4" />
+              <span>Reject</span>
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
+              <span>Reopen</span>
+            </Button>
+          </BulkBar>
+
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      aria-label="Select all requests"
+                      checked={selection.allSelected}
+                      onCheckedChange={selection.toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Reference</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Period</TableHead>
@@ -86,8 +147,22 @@ function SelfServicePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {myRequests.map((r) => (
-                  <TableRow key={r.id}>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                      No requests match this search.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+                {filtered.map((r) => (
+                  <TableRow key={r.id} data-state={selection.isSelected(r.id) ? "selected" : undefined}>
+                    <TableCell>
+                      <Checkbox
+                        aria-label={`Select ${r.id}`}
+                        checked={selection.isSelected(r.id)}
+                        onCheckedChange={() => selection.toggle(r.id)}
+                      />
+                    </TableCell>
                     <TableCell className="text-sm font-medium tabular-nums">{r.id}</TableCell>
                     <TableCell className="text-sm">{r.type}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{r.period}</TableCell>
