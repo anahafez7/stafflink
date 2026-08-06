@@ -90,12 +90,12 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] text-muted-foreground">
+      <div className="mx-auto mt-4 grid max-w-2xl grid-cols-7 gap-1 text-center text-[11px] text-muted-foreground">
         {weekdays.map((d) => (
           <span key={d}>{d}</span>
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1">
+      <div className="mx-auto mt-1 grid max-w-2xl grid-cols-7 gap-1">
         {Array.from({ length: leading }).map((_, i) => (
           <span key={`pad-${i}`} />
         ))}
@@ -121,7 +121,7 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
         })}
       </div>
 
-      <div className="mt-4 rounded-xl border border-border p-3">
+      <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-border p-3">
         {detail ? (
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="font-medium tabular-nums">{detail.date}</span>
