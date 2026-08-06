@@ -6,6 +6,7 @@ import {
   Clock,
   Download,
   FileText,
+  FileSpreadsheet,
   LogIn,
   LogOut,
   Megaphone,
@@ -34,8 +35,20 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useSelection } from "@/hooks/use-selection";
-import { announcements, leaveBalances, myPunchLog, myRequests, payslips } from "@/data/modules";
+import { AttendanceCalendar } from "@/components/self-service/attendance-calendar";
+import { downloadCsv, printTableAsPdf } from "@/lib/export";
+import { useAuth } from "@/lib/auth";
+import {
+  announcements,
+  attendanceHistory,
+  leaveBalances,
+  leaveHistory,
+  myPunchLog,
+  payslips,
+  type LeaveRequest,
+} from "@/data/modules";
 
 export const Route = createFileRoute("/self-service")({
   head: () => ({
@@ -79,7 +92,9 @@ function useNow() {
 }
 
 function SelfServicePage() {
-  const [requests, setRequests] = useState(myRequests);
+  const { user } = useAuth();
+  const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
+  const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const [query, setQuery] = useState("");
   const [balances, setBalances] = useState(leaveBalances);
   const [punchIn, setPunchIn] = useState<string | null>(null);
@@ -88,6 +103,7 @@ function SelfServicePage() {
   const [leaveType, setLeaveType] = useState(leaveBalances[0]?.type ?? "Annual");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
   const now = useNow();
 
   const handlePunch = () => {
@@ -111,6 +127,10 @@ function SelfServicePage() {
       toast.error("Pick a start and end date.");
       return;
     }
+    if (leaveReason.trim().length < 5) {
+      toast.error("Add a short reason (at least 5 characters).");
+      return;
+    }
     const start = new Date(leaveFrom);
     const end = new Date(leaveTo);
     if (end < start) {
@@ -123,25 +143,91 @@ function SelfServicePage() {
       toast.error(`Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`);
       return;
     }
-    const id = `REQ-${String(1000 + requests.length + 1)}`;
+    const remaining = balance ? balance.total - balance.used : 0;
+    const id = `REQ-${String(3410 + requests.length)}`;
     setRequests((prev) => [
-      { id, type: `${leaveType} leave`, period: `${leaveFrom} → ${leaveTo}`, days, status: "Pending" },
+      {
+        id,
+        type: `${leaveType} leave`,
+        leaveType,
+        period: `${leaveFrom} → ${leaveTo}`,
+        days,
+        status: "Pending",
+        reason: leaveReason.trim(),
+        submitted: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+        balanceBefore: remaining,
+        balanceAfter: remaining - days,
+        decision: "Awaiting manager approval",
+      },
       ...prev,
     ]);
-    setBalances((prev) =>
-      prev.map((b) => (b.type === leaveType ? { ...b, used: b.used + days } : b)),
-    );
     setLeaveOpen(false);
     setLeaveFrom("");
     setLeaveTo("");
+    setLeaveReason("");
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+  };
+
+  const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
+    if (ids.length === 0) return;
+    const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const deltas = new Map<string, number>();
+    setRequests((prev) =>
+      prev.map((r) => {
+        if (!ids.includes(r.id) || r.status === status) return r;
+        if (status === "Approved" && r.status !== "Approved") {
+          deltas.set(r.leaveType, (deltas.get(r.leaveType) ?? 0) + r.days);
+        }
+        if (r.status === "Approved" && status !== "Approved") {
+          deltas.set(r.leaveType, (deltas.get(r.leaveType) ?? 0) - r.days);
+        }
+        return {
+          ...r,
+          status,
+          decision:
+            status === "Pending"
+              ? "Reopened · awaiting manager approval"
+              : `${status} by ${user?.name ?? "Manager"} · ${stamp}`,
+        };
+      }),
+    );
+    setBalances((prev) =>
+      prev.map((b) => {
+        const delta = deltas.get(b.type) ?? 0;
+        return delta ? { ...b, used: Math.max(0, Math.min(b.total, b.used + delta)) } : b;
+      }),
+    );
+  };
+
+  const attendanceRows = () =>
+    myPunchLog.map((d) => [d.day, d.in, d.out, d.hours, d.state] as (string | number)[]);
+
+  const exportCsv = () => {
+    downloadCsv("stafflink-weekly-attendance.csv", [
+      ["Day", "Check in", "Check out", "Hours", "Status"],
+      ...attendanceRows(),
+      [],
+      ["Date", "Check in", "Check out", "Hours", "Status"],
+      ...attendanceHistory.map((r) => [r.date, r.in, r.out, r.hours, r.state]),
+    ]);
+    toast.success("Attendance exported as CSV");
+  };
+
+  const exportPdf = () => {
+    const ok = printTableAsPdf(
+      "Weekly attendance & punch log",
+      `${user?.name ?? "Employee"} · StaffLink`,
+      ["Day", "Check in", "Check out", "Hours", "Status"],
+      attendanceRows(),
+    );
+    if (!ok) toast.error("Allow pop-ups to export the PDF.");
   };
 
   const filtered = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return requests;
     return requests.filter((r) => {
-      const haystack = [r.id, r.type, r.period, r.status].join(" ").toLowerCase();
+      const haystack = [r.id, r.type, r.period, r.status, r.reason, r.decision].join(" ").toLowerCase();
       return terms.every((t) => haystack.includes(t));
     });
   }, [requests, query]);
@@ -149,11 +235,11 @@ function SelfServicePage() {
   const ids = useMemo(() => filtered.map((r) => r.id), [filtered]);
   const selection = useSelection(ids);
 
-  const bulkSet = (status: string) => {
-    const count = selection.count;
-    setRequests((prev) => prev.map((r) => (selection.isSelected(r.id) ? { ...r, status } : r)));
+  const bulkSet = (status: LeaveRequest["status"]) => {
+    const chosen = selection.selected;
+    applyDecision(chosen, status);
     selection.clear();
-    toast.success(`${count} request${count === 1 ? "" : "s"} ${status.toLowerCase()}`);
+    toast.success(`${chosen.length} request${chosen.length === 1 ? "" : "s"} ${status.toLowerCase()}`);
   };
 
   return (
@@ -224,6 +310,17 @@ function SelfServicePage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportCsv}>
+              <FileSpreadsheet className="size-4" />
+              <span>Export CSV</span>
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportPdf}>
+              <Download className="size-4" />
+              <span>Export PDF</span>
+            </Button>
+          </div>
         </section>
 
         <section className="surface-card p-5">
@@ -256,6 +353,8 @@ function SelfServicePage() {
         </section>
       </div>
 
+      <AttendanceCalendar records={attendanceHistory} />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {quickActions.map((a) => (
           <button
@@ -275,10 +374,10 @@ function SelfServicePage() {
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-4">
         <section className="surface-card overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
-            <h2 className="text-sm font-semibold">My requests</h2>
+            <h2 className="text-sm font-semibold">Leave request history</h2>
             <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -292,17 +391,23 @@ function SelfServicePage() {
           </div>
 
           <BulkBar count={selection.count} noun="request" onClear={selection.clear}>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
-              <Check className="size-4" />
-              <span>Approve</span>
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
-              <X className="size-4" />
-              <span>Reject</span>
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
-              <span>Reopen</span>
-            </Button>
+            {canApprove ? (
+              <>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
+                  <Check className="size-4" />
+                  <span>Approve</span>
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
+                  <X className="size-4" />
+                  <span>Reject</span>
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
+                  <span>Reopen</span>
+                </Button>
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Only managers can approve or reject requests.</span>
+            )}
           </BulkBar>
 
           <div className="overflow-x-auto">
@@ -320,13 +425,16 @@ function SelfServicePage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead>Days</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Decision</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                       No requests match this search.
                     </TableCell>
                   </TableRow>
@@ -342,12 +450,60 @@ function SelfServicePage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium tabular-nums">{r.id}</TableCell>
                     <TableCell className="text-sm">{r.type}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.period}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {r.period}
+                      <span className="block text-xs">Submitted {r.submitted}</span>
+                    </TableCell>
                     <TableCell className="text-sm tabular-nums">{r.days || "—"}</TableCell>
+                    <TableCell className="text-sm tabular-nums">
+                      {r.status === "Rejected" ? (
+                        <span className="text-muted-foreground">{r.balanceBefore} (unchanged)</span>
+                      ) : (
+                        <span>
+                          {r.balanceBefore} → <span className="font-medium">{r.balanceAfter}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            −{r.days} {r.leaveType.toLowerCase()} day{r.days === 1 ? "" : "s"}
+                          </span>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-[16rem] text-sm text-muted-foreground">{r.reason}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusStyles[r.status]}>
                         {r.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {canApprove && r.status === "Pending" ? (
+                        <div className="flex justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => {
+                              applyDecision([r.id], "Approved");
+                              toast.success(`${r.id} approved`);
+                            }}
+                          >
+                            <Check className="size-4" />
+                            <span>Approve</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => {
+                              applyDecision([r.id], "Rejected");
+                              toast.success(`${r.id} rejected`);
+                            }}
+                          >
+                            <X className="size-4" />
+                            <span>Reject</span>
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{r.decision}</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -356,6 +512,9 @@ function SelfServicePage() {
           </div>
         </section>
 
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
         <section className="surface-card p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <Megaphone className="size-4 text-primary" />
@@ -373,9 +532,6 @@ function SelfServicePage() {
             ))}
           </ul>
         </section>
-      </div>
-
-      <div className="grid gap-4">
         <section className="surface-card p-5">
           <h2 className="text-sm font-semibold">Payslips</h2>
           <ul className="mt-3 divide-y divide-border">
@@ -428,6 +584,17 @@ function SelfServicePage() {
                 <Label htmlFor="leave-to">To</Label>
                 <Input id="leave-to" type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="leave-reason">Reason</Label>
+              <Textarea
+                id="leave-reason"
+                rows={3}
+                maxLength={280}
+                value={leaveReason}
+                onChange={(e) => setLeaveReason(e.target.value)}
+                placeholder="Why do you need this leave?"
+              />
             </div>
           </div>
           <DialogFooter>
