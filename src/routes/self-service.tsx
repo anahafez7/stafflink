@@ -374,7 +374,7 @@ function SelfServicePage() {
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-4">
         <section className="surface-card overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
             <h2 className="text-sm font-semibold">Leave request history</h2>
