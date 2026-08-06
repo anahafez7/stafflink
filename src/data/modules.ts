@@ -96,6 +96,117 @@ export const myRequests = [
   { id: "REQ-3298", type: "Unpaid Leave", period: "02 Jun 2026", days: 1, status: "Rejected" },
 ];
 
+export type LeaveRequest = {
+  id: string;
+  type: string;
+  leaveType: string;
+  period: string;
+  days: number;
+  status: "Pending" | "Approved" | "Rejected";
+  reason: string;
+  submitted: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  decision: string;
+};
+
+export const leaveHistory: LeaveRequest[] = [
+  {
+    id: "REQ-3402",
+    type: "Annual leave",
+    leaveType: "Annual",
+    period: "18 – 22 Aug 2026",
+    days: 5,
+    status: "Pending",
+    reason: "Family trip to Alexandria, cover arranged with Ziad.",
+    submitted: "02 Aug 2026",
+    balanceBefore: 12,
+    balanceAfter: 7,
+    decision: "Awaiting Omar Saleh",
+  },
+  {
+    id: "REQ-3388",
+    type: "Sick leave",
+    leaveType: "Sick",
+    period: "09 Jul 2026",
+    days: 1,
+    status: "Approved",
+    reason: "Fever, medical certificate attached.",
+    submitted: "09 Jul 2026",
+    balanceBefore: 11,
+    balanceAfter: 10,
+    decision: "Approved by Omar Saleh · 09 Jul 2026",
+  },
+  {
+    id: "REQ-3341",
+    type: "Casual leave",
+    leaveType: "Casual",
+    period: "14 Jul 2026",
+    days: 1,
+    status: "Approved",
+    reason: "Government paperwork appointment.",
+    submitted: "10 Jul 2026",
+    balanceBefore: 5,
+    balanceAfter: 4,
+    decision: "Approved by Omar Saleh · 11 Jul 2026",
+  },
+  {
+    id: "REQ-3298",
+    type: "Annual leave",
+    leaveType: "Annual",
+    period: "01 – 04 Jun 2026",
+    days: 4,
+    status: "Rejected",
+    reason: "Extended weekend — clashed with the June payroll lock.",
+    submitted: "20 May 2026",
+    balanceBefore: 16,
+    balanceAfter: 16,
+    decision: "Rejected by Omar Saleh · 22 May 2026",
+  },
+];
+
+export type PunchRecord = { date: string; in: string; out: string; hours: string; state: string };
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function buildAttendanceHistory(): PunchRecord[] {
+  const out: PunchRecord[] = [];
+  for (const [year, month, days] of [
+    [2026, 6, 30],
+    [2026, 7, 31],
+  ] as [number, number, number][]) {
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(Date.UTC(year, month - 1, d));
+      const wd = date.getUTCDay();
+      const key = `${year}-${pad(month)}-${pad(d)}`;
+      if (wd === 5 || wd === 6) {
+        out.push({ date: key, in: "—", out: "—", hours: "—", state: "Weekend" });
+        continue;
+      }
+      const seed = (d * 7 + month * 3) % 10;
+      if (seed === 4) {
+        out.push({ date: key, in: "—", out: "—", hours: "—", state: "Leave" });
+        continue;
+      }
+      const late = seed === 1 || seed === 8;
+      const overtime = seed === 6;
+      const inMin = late ? 9 * 60 + 5 + seed : 8 * 60 + 35 + seed;
+      const worked = overtime ? 9 * 60 + 20 : 8 * 60 + 25 + (seed % 5);
+      const outMin = inMin + worked;
+      out.push({
+        date: key,
+        in: `${pad(Math.floor(inMin / 60))}:${pad(inMin % 60)}`,
+        out: `${pad(Math.floor(outMin / 60))}:${pad(outMin % 60)}`,
+        hours: `${Math.floor(worked / 60)}h ${pad(worked % 60)}m`,
+        state: late ? "Late" : overtime ? "Overtime" : "On time",
+      });
+    }
+  }
+  return out;
+}
+
+export const attendanceHistory: PunchRecord[] = buildAttendanceHistory();
+
 export const payslips = [
   { month: "July 2026", gross: "EGP 24,500", net: "EGP 20,180", issued: "28 Jul 2026" },
   { month: "June 2026", gross: "EGP 24,500", net: "EGP 20,180", issued: "28 Jun 2026" },
