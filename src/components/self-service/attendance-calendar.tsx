@@ -35,9 +35,11 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
   const byDate = useMemo(() => new Map(records.map((r) => [r.date, r])), [records]);
   const monthRecords = useMemo(() => records.filter((r) => r.date.startsWith(month)), [records, month]);
 
-  const [year, mon] = month.split("-").map(Number);
-  const first = new Date(Date.UTC(year, (mon ?? 1) - 1, 1));
-  const daysInMonth = new Date(Date.UTC(year, mon ?? 1, 0)).getUTCDate();
+  const parts = month.split("-").map(Number);
+  const year = parts[0] ?? 2026;
+  const mon = parts[1] ?? 1;
+  const first = new Date(Date.UTC(year, mon - 1, 1));
+  const daysInMonth = new Date(Date.UTC(year, mon, 0)).getUTCDate();
   const leading = first.getUTCDay();
   const label = first.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
 
