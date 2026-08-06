@@ -227,7 +227,7 @@ function SelfServicePage() {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return requests;
     return requests.filter((r) => {
-      const haystack = [r.id, r.type, r.period, r.status].join(" ").toLowerCase();
+      const haystack = [r.id, r.type, r.period, r.status, r.reason, r.decision].join(" ").toLowerCase();
       return terms.every((t) => haystack.includes(t));
     });
   }, [requests, query]);
@@ -582,6 +582,17 @@ function SelfServicePage() {
                 <Label htmlFor="leave-to">To</Label>
                 <Input id="leave-to" type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="leave-reason">Reason</Label>
+              <Textarea
+                id="leave-reason"
+                rows={3}
+                maxLength={280}
+                value={leaveReason}
+                onChange={(e) => setLeaveReason(e.target.value)}
+                placeholder="Why do you need this leave?"
+              />
             </div>
           </div>
           <DialogFooter>
