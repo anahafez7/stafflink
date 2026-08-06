@@ -6,6 +6,7 @@ import {
   Clock,
   Download,
   FileText,
+  FileSpreadsheet,
   LogIn,
   LogOut,
   Megaphone,
@@ -34,8 +35,20 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useSelection } from "@/hooks/use-selection";
-import { announcements, leaveBalances, myPunchLog, myRequests, payslips } from "@/data/modules";
+import { AttendanceCalendar } from "@/components/self-service/attendance-calendar";
+import { downloadCsv, printTableAsPdf } from "@/lib/export";
+import { useAuth } from "@/lib/auth";
+import {
+  announcements,
+  attendanceHistory,
+  leaveBalances,
+  leaveHistory,
+  myPunchLog,
+  payslips,
+  type LeaveRequest,
+} from "@/data/modules";
 
 export const Route = createFileRoute("/self-service")({
   head: () => ({
@@ -79,7 +92,9 @@ function useNow() {
 }
 
 function SelfServicePage() {
-  const [requests, setRequests] = useState(myRequests);
+  const { user } = useAuth();
+  const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
+  const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const [query, setQuery] = useState("");
   const [balances, setBalances] = useState(leaveBalances);
   const [punchIn, setPunchIn] = useState<string | null>(null);
@@ -88,6 +103,7 @@ function SelfServicePage() {
   const [leaveType, setLeaveType] = useState(leaveBalances[0]?.type ?? "Annual");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
   const now = useNow();
 
   const handlePunch = () => {
@@ -111,6 +127,10 @@ function SelfServicePage() {
       toast.error("Pick a start and end date.");
       return;
     }
+    if (leaveReason.trim().length < 5) {
+      toast.error("Add a short reason (at least 5 characters).");
+      return;
+    }
     const start = new Date(leaveFrom);
     const end = new Date(leaveTo);
     if (end < start) {
@@ -123,18 +143,84 @@ function SelfServicePage() {
       toast.error(`Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`);
       return;
     }
-    const id = `REQ-${String(1000 + requests.length + 1)}`;
+    const remaining = balance ? balance.total - balance.used : 0;
+    const id = `REQ-${String(3410 + requests.length)}`;
     setRequests((prev) => [
-      { id, type: `${leaveType} leave`, period: `${leaveFrom} → ${leaveTo}`, days, status: "Pending" },
+      {
+        id,
+        type: `${leaveType} leave`,
+        leaveType,
+        period: `${leaveFrom} → ${leaveTo}`,
+        days,
+        status: "Pending",
+        reason: leaveReason.trim(),
+        submitted: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+        balanceBefore: remaining,
+        balanceAfter: remaining - days,
+        decision: "Awaiting manager approval",
+      },
       ...prev,
     ]);
-    setBalances((prev) =>
-      prev.map((b) => (b.type === leaveType ? { ...b, used: b.used + days } : b)),
-    );
     setLeaveOpen(false);
     setLeaveFrom("");
     setLeaveTo("");
+    setLeaveReason("");
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+  };
+
+  const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
+    if (ids.length === 0) return;
+    const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const deltas = new Map<string, number>();
+    setRequests((prev) =>
+      prev.map((r) => {
+        if (!ids.includes(r.id) || r.status === status) return r;
+        if (status === "Approved" && r.status !== "Approved") {
+          deltas.set(r.leaveType, (deltas.get(r.leaveType) ?? 0) + r.days);
+        }
+        if (r.status === "Approved" && status !== "Approved") {
+          deltas.set(r.leaveType, (deltas.get(r.leaveType) ?? 0) - r.days);
+        }
+        return {
+          ...r,
+          status,
+          decision:
+            status === "Pending"
+              ? "Reopened · awaiting manager approval"
+              : `${status} by ${user?.name ?? "Manager"} · ${stamp}`,
+        };
+      }),
+    );
+    setBalances((prev) =>
+      prev.map((b) => {
+        const delta = deltas.get(b.type) ?? 0;
+        return delta ? { ...b, used: Math.max(0, Math.min(b.total, b.used + delta)) } : b;
+      }),
+    );
+  };
+
+  const attendanceRows = () =>
+    myPunchLog.map((d) => [d.day, d.in, d.out, d.hours, d.state] as (string | number)[]);
+
+  const exportCsv = () => {
+    downloadCsv("stafflink-weekly-attendance.csv", [
+      ["Day", "Check in", "Check out", "Hours", "Status"],
+      ...attendanceRows(),
+      [],
+      ["Date", "Check in", "Check out", "Hours", "Status"],
+      ...attendanceHistory.map((r) => [r.date, r.in, r.out, r.hours, r.state]),
+    ]);
+    toast.success("Attendance exported as CSV");
+  };
+
+  const exportPdf = () => {
+    const ok = printTableAsPdf(
+      "Weekly attendance & punch log",
+      `${user?.name ?? "Employee"} · StaffLink`,
+      ["Day", "Check in", "Check out", "Hours", "Status"],
+      attendanceRows(),
+    );
+    if (!ok) toast.error("Allow pop-ups to export the PDF.");
   };
 
   const filtered = useMemo(() => {
@@ -149,11 +235,11 @@ function SelfServicePage() {
   const ids = useMemo(() => filtered.map((r) => r.id), [filtered]);
   const selection = useSelection(ids);
 
-  const bulkSet = (status: string) => {
-    const count = selection.count;
-    setRequests((prev) => prev.map((r) => (selection.isSelected(r.id) ? { ...r, status } : r)));
+  const bulkSet = (status: LeaveRequest["status"]) => {
+    const chosen = selection.selected;
+    applyDecision(chosen, status);
     selection.clear();
-    toast.success(`${count} request${count === 1 ? "" : "s"} ${status.toLowerCase()}`);
+    toast.success(`${chosen.length} request${chosen.length === 1 ? "" : "s"} ${status.toLowerCase()}`);
   };
 
   return (
