@@ -512,6 +512,9 @@ function SelfServicePage() {
           </div>
         </section>
 
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
         <section className="surface-card p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <Megaphone className="size-4 text-primary" />
@@ -529,9 +532,6 @@ function SelfServicePage() {
             ))}
           </ul>
         </section>
-      </div>
-
-      <div className="grid gap-4">
         <section className="surface-card p-5">
           <h2 className="text-sm font-semibold">Payslips</h2>
           <ul className="mt-3 divide-y divide-border">
