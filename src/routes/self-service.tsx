@@ -310,6 +310,17 @@ function SelfServicePage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportCsv}>
+              <FileSpreadsheet className="size-4" />
+              <span>Export CSV</span>
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportPdf}>
+              <Download className="size-4" />
+              <span>Export PDF</span>
+            </Button>
+          </div>
         </section>
 
         <section className="surface-card p-5">
@@ -364,7 +375,7 @@ function SelfServicePage() {
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <section className="surface-card overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
-            <h2 className="text-sm font-semibold">My requests</h2>
+            <h2 className="text-sm font-semibold">Leave request history</h2>
             <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -378,17 +389,23 @@ function SelfServicePage() {
           </div>
 
           <BulkBar count={selection.count} noun="request" onClear={selection.clear}>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
-              <Check className="size-4" />
-              <span>Approve</span>
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
-              <X className="size-4" />
-              <span>Reject</span>
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
-              <span>Reopen</span>
-            </Button>
+            {canApprove ? (
+              <>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
+                  <Check className="size-4" />
+                  <span>Approve</span>
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
+                  <X className="size-4" />
+                  <span>Reject</span>
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
+                  <span>Reopen</span>
+                </Button>
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Only managers can approve or reject requests.</span>
+            )}
           </BulkBar>
 
           <div className="overflow-x-auto">
@@ -406,13 +423,16 @@ function SelfServicePage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead>Days</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Decision</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                       No requests match this search.
                     </TableCell>
                   </TableRow>
@@ -428,12 +448,60 @@ function SelfServicePage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium tabular-nums">{r.id}</TableCell>
                     <TableCell className="text-sm">{r.type}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.period}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {r.period}
+                      <span className="block text-xs">Submitted {r.submitted}</span>
+                    </TableCell>
                     <TableCell className="text-sm tabular-nums">{r.days || "—"}</TableCell>
+                    <TableCell className="text-sm tabular-nums">
+                      {r.status === "Rejected" ? (
+                        <span className="text-muted-foreground">{r.balanceBefore} (unchanged)</span>
+                      ) : (
+                        <span>
+                          {r.balanceBefore} → <span className="font-medium">{r.balanceAfter}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            −{r.days} {r.leaveType.toLowerCase()} day{r.days === 1 ? "" : "s"}
+                          </span>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-[16rem] text-sm text-muted-foreground">{r.reason}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusStyles[r.status]}>
                         {r.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {canApprove && r.status === "Pending" ? (
+                        <div className="flex justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => {
+                              applyDecision([r.id], "Approved");
+                              toast.success(`${r.id} approved`);
+                            }}
+                          >
+                            <Check className="size-4" />
+                            <span>Approve</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => {
+                              applyDecision([r.id], "Rejected");
+                              toast.success(`${r.id} rejected`);
+                            }}
+                          >
+                            <X className="size-4" />
+                            <span>Reject</span>
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{r.decision}</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
