@@ -104,7 +104,27 @@ function SelfServicePage() {
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
+  const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
+
+  const openLeaveForm = () => {
+    setLeaveStep(1);
+    setLeaveOpen(true);
+  };
+
+  const leaveDays =
+    leaveFrom && leaveTo
+      ? Math.max(
+          0,
+          Math.round((new Date(leaveTo).getTime() - new Date(leaveFrom).getTime()) / 86_400_000) + 1,
+        )
+      : 0;
+
+  const stepValid = (step: number) => {
+    if (step === 1) return Boolean(leaveType);
+    if (step === 2) return Boolean(leaveFrom && leaveTo && leaveDays > 0);
+    return leaveReason.trim().length >= 5;
+  };
 
   const handlePunch = () => {
     if (!punchIn) {
@@ -165,6 +185,7 @@ function SelfServicePage() {
     setLeaveFrom("");
     setLeaveTo("");
     setLeaveReason("");
+    setLeaveStep(1);
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
   };
 
