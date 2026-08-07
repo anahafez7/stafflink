@@ -532,6 +532,31 @@ function SelfServicePage() {
             ))}
           </ul>
         </section>
+        <section id="profile" className="surface-card scroll-mt-20 p-5">
+          <h2 className="text-sm font-semibold">My profile</h2>
+          <div className="mt-3 flex min-w-0 items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand/10 text-sm font-semibold text-brand">
+              {user?.initials ?? "—"}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{user?.name ?? "Not signed in"}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user?.title} · {user?.email}
+              </p>
+            </div>
+          </div>
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-xl border border-border p-3">
+              <dt className="text-xs text-muted-foreground">Branch</dt>
+              <dd className="mt-1 font-medium">Cairo HQ</dd>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <dt className="text-xs text-muted-foreground">Department</dt>
+              <dd className="mt-1 font-medium">Technology</dd>
+            </div>
+          </dl>
+        </section>
+
         <section className="surface-card p-5">
           <h2 className="text-sm font-semibold">Payslips</h2>
           <ul className="mt-3 divide-y divide-border">
