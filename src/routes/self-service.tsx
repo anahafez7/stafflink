@@ -270,7 +270,7 @@ function SelfServicePage() {
         title="Employee self service"
         description="Everything an employee needs, in three clicks or fewer."
         actions={
-          <Button variant="secondary" onClick={() => setLeaveOpen(true)}>
+          <Button variant="secondary" onClick={() => openLeaveForm()}>
             <Plus className="size-4" />
             <span>New request</span>
           </Button>
@@ -440,7 +440,82 @@ function SelfServicePage() {
             )}
           </BulkBar>
 
-          <div className="overflow-x-auto">
+          {/* Mobile: swipe-friendly cards with large actions */}
+          <ul className="divide-y divide-border md:hidden">
+            {filtered.length === 0 ? (
+              <li className="py-10 text-center text-sm text-muted-foreground">No requests match this search.</li>
+            ) : null}
+            {filtered.map((r) => (
+              <li key={r.id} className="space-y-3 p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    aria-label={`Select ${r.id}`}
+                    className="mt-1 size-5"
+                    checked={selection.isSelected(r.id)}
+                    onCheckedChange={() => selection.toggle(r.id)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{r.type}</p>
+                    <p className="truncate text-xs text-muted-foreground tabular-nums">
+                      {r.id} · submitted {r.submitted}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={statusStyles[r.status]}>
+                    {r.status}
+                  </Badge>
+                </div>
+                <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Period</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">{r.period}</p>
+                  </div>
+                  <div className="min-w-[6rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Days</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">{r.days || "—"}</p>
+                  </div>
+                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Balance</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">
+                      {r.status === "Rejected" ? `${r.balanceBefore} (unchanged)` : `${r.balanceBefore} → ${r.balanceAfter}`}
+                    </p>
+                  </div>
+                  <div className="min-w-[14rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Reason</p>
+                    <p className="mt-1 text-sm">{r.reason}</p>
+                  </div>
+                </div>
+                {canApprove && r.status === "Pending" ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      className="h-11 rounded-xl"
+                      onClick={() => {
+                        applyDecision([r.id], "Approved");
+                        toast.success(`${r.id} approved`);
+                      }}
+                    >
+                      <Check className="size-5" />
+                      <span>Approve</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-xl"
+                      onClick={() => {
+                        applyDecision([r.id], "Rejected");
+                        toast.success(`${r.id} rejected`);
+                      }}
+                    >
+                      <X className="size-5" />
+                      <span>Reject</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{r.decision}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
