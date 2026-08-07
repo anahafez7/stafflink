@@ -257,7 +257,7 @@ function SelfServicePage() {
       />
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
-        <section className="surface-card p-5">
+        <section id="attendance" className="surface-card scroll-mt-20 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold">Check in / out</h2>
@@ -323,7 +323,7 @@ function SelfServicePage() {
           </div>
         </section>
 
-        <section className="surface-card p-5">
+        <section id="leaves" className="surface-card scroll-mt-20 p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">Leaves</h2>
             <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setLeaveOpen(true)}>
