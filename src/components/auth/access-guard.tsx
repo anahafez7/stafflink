@@ -1,6 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { moduleHome, pathToModule, roleLabels, useAuth } from "@/lib/auth";
@@ -14,9 +14,18 @@ export function AccessGuard({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { user, ready, can } = useAuth();
   const module = pathToModule(pathname);
+  const navigate = useNavigate();
+  const allowed = Boolean(user) && can(module);
+  // Landing on "/" should never look like a permission error — send the user
+  // straight to the first module their role can open.
+  const redirectHome = ready && Boolean(user) && !allowed && pathname === "/";
 
-  if (!ready) return <div className="min-h-[50vh]" />;
-  if (user && can(module)) return <>{children}</>;
+  useEffect(() => {
+    if (redirectHome && user) navigate({ to: moduleHome(user.role), replace: true });
+  }, [redirectHome, user, navigate]);
+
+  if (!ready || redirectHome) return <div className="min-h-[50vh]" />;
+  if (allowed) return <>{children}</>;
 
   return (
     <div className="surface-card mx-auto mt-10 max-w-md p-8 text-center">

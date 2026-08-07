@@ -18,6 +18,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { LoginScreen } from "@/components/auth/login-screen";
 import { AccessGuard } from "@/components/auth/access-guard";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 function NotFoundComponent() {
   return (
@@ -164,7 +165,7 @@ function AppShell() {
         <AppSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
-          <main className="min-w-0 flex-1 p-3 sm:p-5">
+          <main className="min-w-0 flex-1 p-3 pb-20 sm:p-5 md:pb-5">
             <AccessGuard>
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <Outlet />
@@ -172,6 +173,7 @@ function AppShell() {
           </main>
         </div>
       </div>
+      <MobileNav />
     </SidebarProvider>
   );
 }
