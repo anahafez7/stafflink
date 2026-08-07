@@ -165,7 +165,23 @@ export const leaveHistory: LeaveRequest[] = [
   },
 ];
 
-export type PunchRecord = { date: string; in: string; out: string; hours: string; state: string };
+export type PunchRecord = {
+  date: string;
+  in: string;
+  out: string;
+  hours: string;
+  state: string;
+  location?: string;
+  coords?: string;
+  method?: string;
+};
+
+const punchSites = [
+  { location: "Cairo HQ · Nasr City", coords: "30.0626, 31.3497", method: "Web punch" },
+  { location: "Cairo HQ · Nasr City", coords: "30.0626, 31.3497", method: "Kiosk terminal" },
+  { location: "Giza Branch · Dokki", coords: "30.0380, 31.2120", method: "Mobile GPS" },
+  { location: "Remote · Home office", coords: "—", method: "Mobile GPS" },
+];
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -193,12 +209,16 @@ function buildAttendanceHistory(): PunchRecord[] {
       const inMin = late ? 9 * 60 + 5 + seed : 8 * 60 + 35 + seed;
       const worked = overtime ? 9 * 60 + 20 : 8 * 60 + 25 + (seed % 5);
       const outMin = inMin + worked;
+      const site = punchSites[seed % punchSites.length]!;
       out.push({
         date: key,
         in: `${pad(Math.floor(inMin / 60))}:${pad(inMin % 60)}`,
         out: `${pad(Math.floor(outMin / 60))}:${pad(outMin % 60)}`,
         hours: `${Math.floor(worked / 60)}h ${pad(worked % 60)}m`,
         state: late ? "Late" : overtime ? "Overtime" : "On time",
+        location: site.location,
+        coords: site.coords,
+        method: site.method,
       });
     }
   }

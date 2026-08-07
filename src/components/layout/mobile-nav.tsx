@@ -31,13 +31,29 @@ export function MobileNav() {
               <Link
                 to={item.to}
                 {...(item.hash ? { hash: item.hash } : {})}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground",
+                  "relative flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[11px] font-medium",
+                  "transition-all duration-300 ease-out active:scale-95",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <item.icon className="size-5" />
-                <span>{item.label}</span>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary transition-all duration-300 ease-out",
+                    active ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "grid size-8 place-items-center rounded-xl transition-all duration-300 ease-out",
+                    active ? "-translate-y-0.5 bg-primary/10" : "translate-y-0 bg-transparent",
+                  )}
+                >
+                  <item.icon className={cn("transition-all duration-300", active ? "size-[22px]" : "size-5")} />
+                </span>
+                <span className="transition-colors duration-300">{item.label}</span>
               </Link>
             </li>
           );
