@@ -9,9 +9,13 @@ import {
   FileSpreadsheet,
   LogIn,
   LogOut,
+  Laptop,
   Megaphone,
   Plus,
   Search,
+  ShieldCheck,
+  Smartphone,
+  Tablet,
   Wallet,
   X,
 } from "lucide-react";
@@ -24,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
@@ -91,8 +96,18 @@ function useNow() {
   return now;
 }
 
+const initialDevices = [
+  { name: "iPhone 15 · StaffLink app", location: "Cairo, EG", lastActive: "Active now", icon: Smartphone, current: true },
+  { name: "MacBook Pro · Chrome", location: "Cairo HQ", lastActive: "2 hours ago", icon: Laptop, current: false },
+  { name: "iPad Air · Safari", location: "Giza, EG", lastActive: "3 days ago", icon: Tablet, current: false },
+];
+
 function SelfServicePage() {
   const { user } = useAuth();
+  const [twoFactor, setTwoFactor] = useState(true);
+  const [biometrics, setBiometrics] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState("30");
+  const [devices, setDevices] = useState(initialDevices);
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const [query, setQuery] = useState("");
