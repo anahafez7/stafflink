@@ -326,7 +326,12 @@ function SelfServicePage() {
         <section id="leaves" className="surface-card scroll-mt-20 p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">Leaves</h2>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setLeaveOpen(true)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hidden rounded-lg md:inline-flex"
+              onClick={() => openLeaveForm()}
+            >
               <CalendarDays className="size-4" />
               <span>Request leave</span>
             </Button>
@@ -350,6 +355,10 @@ function SelfServicePage() {
               {requests.find((r) => r.status === "Approved")?.period ?? "No approved leave scheduled"}
             </p>
           </div>
+          <Button className="mt-4 h-12 w-full rounded-xl text-base md:hidden" onClick={() => openLeaveForm()}>
+            <CalendarDays className="size-5" />
+            <span>Request leave</span>
+          </Button>
         </section>
       </div>
 

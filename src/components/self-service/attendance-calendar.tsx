@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { PunchRecord } from "@/data/modules";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const stateTone: Record<string, string> = {
   "On time": "border-success/40 text-success",
@@ -31,6 +32,7 @@ const dayDot: Record<string, string> = {
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
+  const isMobile = useIsMobile();
   const months = useMemo(() => {
     const set = Array.from(new Set(records.map((r) => r.date.slice(0, 7))));
     return set.sort();
@@ -160,7 +162,7 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
 
       {/* Mobile-friendly punch detail modal */}
       <Dialog
-        open={Boolean(detail) && typeof window !== "undefined"}
+        open={Boolean(detail) && isMobile}
         onOpenChange={(open) => {
           if (!open) setSelected(null);
         }}
