@@ -684,54 +684,137 @@ function SelfServicePage() {
       </div>
 
       <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl sm:max-w-md">
+          <DialogHeader className="text-left">
             <DialogTitle>Request leave</DialogTitle>
-            <DialogDescription>Submit a leave request for manager approval.</DialogDescription>
+            <DialogDescription>
+              Step {leaveStep} of 3 ·{" "}
+              {leaveStep === 1 ? "Choose leave type" : leaveStep === 2 ? "Pick your dates" : "Add a reason"}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="leave-type">Leave type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger id="leave-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {balances.map((b) => (
-                    <SelectItem key={b.type} value={b.type}>
-                      {b.type} · {b.total - b.used} left
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="leave-from">From</Label>
-                <Input id="leave-from" type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="leave-to">To</Label>
-                <Input id="leave-to" type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="leave-reason">Reason</Label>
-              <Textarea
-                id="leave-reason"
-                rows={3}
-                maxLength={280}
-                value={leaveReason}
-                onChange={(e) => setLeaveReason(e.target.value)}
-                placeholder="Why do you need this leave?"
+
+          <div className="flex gap-1.5" aria-hidden>
+            {[1, 2, 3].map((s) => (
+              <span
+                key={s}
+                className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                  s <= leaveStep ? "bg-primary" : "bg-muted"
+                }`}
               />
-            </div>
+            ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setLeaveOpen(false)}>
-              Cancel
+
+          <div className="space-y-4">
+            {leaveStep === 1 ? (
+              <div className="space-y-2">
+                <Label htmlFor="leave-type">Leave type</Label>
+                <div className="grid gap-2">
+                  {balances.map((b) => (
+                    <button
+                      key={b.type}
+                      type="button"
+                      onClick={() => setLeaveType(b.type)}
+                      className={`flex items-center justify-between rounded-xl border p-4 text-left transition-colors ${
+                        leaveType === b.type ? "border-primary bg-primary/5" : "border-border hover:bg-secondary"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{b.type}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {b.total - b.used} days left
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <Select value={leaveType} onValueChange={setLeaveType}>
+                  <SelectTrigger id="leave-type" className="sr-only">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {balances.map((b) => (
+                      <SelectItem key={b.type} value={b.type}>
+                        {b.type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {leaveStep === 2 ? (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-from">From</Label>
+                  <Input
+                    id="leave-from"
+                    type="date"
+                    className="h-12 rounded-xl"
+                    value={leaveFrom}
+                    onChange={(e) => setLeaveFrom(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-to">To</Label>
+                  <Input
+                    id="leave-to"
+                    type="date"
+                    className="h-12 rounded-xl"
+                    value={leaveTo}
+                    onChange={(e) => setLeaveTo(e.target.value)}
+                  />
+                </div>
+                <p className="rounded-xl border border-border p-3 text-sm text-muted-foreground">
+                  {leaveDays > 0
+                    ? `${leaveDays} day${leaveDays === 1 ? "" : "s"} of ${leaveType.toLowerCase()} leave`
+                    : "Pick a start and end date."}
+                </p>
+              </div>
+            ) : null}
+
+            {leaveStep === 3 ? (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-reason">Reason</Label>
+                  <Textarea
+                    id="leave-reason"
+                    rows={4}
+                    maxLength={280}
+                    className="rounded-xl"
+                    value={leaveReason}
+                    onChange={(e) => setLeaveReason(e.target.value)}
+                    placeholder="Why do you need this leave?"
+                  />
+                </div>
+                <div className="rounded-xl border border-border p-3 text-sm">
+                  <p className="font-medium">{leaveType} leave</p>
+                  <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+                    {leaveFrom} → {leaveTo} · {leaveDays} day{leaveDays === 1 ? "" : "s"}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <DialogFooter className="flex-row gap-2">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl"
+              onClick={() => (leaveStep === 1 ? setLeaveOpen(false) : setLeaveStep((s) => s - 1))}
+            >
+              {leaveStep === 1 ? "Cancel" : "Back"}
             </Button>
-            <Button onClick={submitLeave}>Submit request</Button>
+            {leaveStep < 3 ? (
+              <Button
+                className="h-12 flex-1 rounded-xl"
+                disabled={!stepValid(leaveStep)}
+                onClick={() => setLeaveStep((s) => s + 1)}
+              >
+                Continue
+              </Button>
+            ) : (
+              <Button className="h-12 flex-1 rounded-xl" onClick={submitLeave}>
+                Submit request
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
