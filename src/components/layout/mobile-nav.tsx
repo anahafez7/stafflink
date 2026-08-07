@@ -30,7 +30,7 @@ export function MobileNav() {
             <li key={item.label}>
               <Link
                 to={item.to}
-                hash={item.hash || undefined}
+                {...(item.hash ? { hash: item.hash } : {})}
                 className={cn(
                   "flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground",
