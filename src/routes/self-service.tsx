@@ -660,6 +660,121 @@ function SelfServicePage() {
               <dd className="mt-1 font-medium">Technology</dd>
             </div>
           </dl>
+
+          <div className="mt-5 border-t border-border pt-4">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="size-4 text-primary" />
+              Security
+            </h3>
+
+            <div className="mt-3 space-y-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Two-factor authentication</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {twoFactor ? "Enabled · code sent to your phone" : "Add a second step at sign-in"}
+                  </p>
+                </div>
+                <Switch
+                  checked={twoFactor}
+                  aria-label="Two-factor authentication"
+                  onCheckedChange={(v) => {
+                    setTwoFactor(v);
+                    toast.success(v ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
+                  }}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Biometric unlock</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Face or fingerprint on this device</p>
+                </div>
+                <Switch
+                  checked={biometrics}
+                  aria-label="Biometric unlock"
+                  onCheckedChange={(v) => {
+                    setBiometrics(v);
+                    toast.success(v ? "Biometric unlock on" : "Biometric unlock off");
+                  }}
+                />
+              </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <Label htmlFor="session-timeout" className="text-sm font-medium">
+                  Session timeout
+                </Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">Sign out automatically when idle</p>
+                <Select
+                  value={sessionTimeout}
+                  onValueChange={(v) => {
+                    setSessionTimeout(v);
+                    toast.success(`Session timeout set to ${v} minutes`);
+                  }}
+                >
+                  <SelectTrigger id="session-timeout" className="mt-2 h-11 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["15", "30", "60", "120"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m} minutes
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">Devices &amp; sessions</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-lg"
+                    onClick={() => {
+                      setDevices((prev) => prev.filter((d) => d.current));
+                      toast.success("Signed out of all other devices");
+                    }}
+                  >
+                    Sign out others
+                  </Button>
+                </div>
+                <ul className="mt-3 divide-y divide-border">
+                  {devices.map((d) => (
+                    <li key={d.name} className="flex items-start gap-3 py-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground">
+                        <d.icon className="size-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{d.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {d.location} · {d.lastActive}
+                        </p>
+                      </div>
+                      {d.current ? (
+                        <Badge variant="outline" className="border-success/40 text-success">
+                          This device
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-lg text-destructive"
+                          onClick={() => {
+                            setDevices((prev) => prev.filter((x) => x.name !== d.name));
+                            toast.success(`${d.name} signed out`);
+                          }}
+                        >
+                          Revoke
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="surface-card p-5">
