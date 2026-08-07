@@ -9,9 +9,13 @@ import {
   FileSpreadsheet,
   LogIn,
   LogOut,
+  Laptop,
   Megaphone,
   Plus,
   Search,
+  ShieldCheck,
+  Smartphone,
+  Tablet,
   Wallet,
   X,
 } from "lucide-react";
@@ -24,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
@@ -91,8 +96,18 @@ function useNow() {
   return now;
 }
 
+const initialDevices = [
+  { name: "iPhone 15 · StaffLink app", location: "Cairo, EG", lastActive: "Active now", icon: Smartphone, current: true },
+  { name: "MacBook Pro · Chrome", location: "Cairo HQ", lastActive: "2 hours ago", icon: Laptop, current: false },
+  { name: "iPad Air · Safari", location: "Giza, EG", lastActive: "3 days ago", icon: Tablet, current: false },
+];
+
 function SelfServicePage() {
   const { user } = useAuth();
+  const [twoFactor, setTwoFactor] = useState(true);
+  const [biometrics, setBiometrics] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState("30");
+  const [devices, setDevices] = useState(initialDevices);
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const [query, setQuery] = useState("");
@@ -104,7 +119,27 @@ function SelfServicePage() {
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
+  const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
+
+  const openLeaveForm = () => {
+    setLeaveStep(1);
+    setLeaveOpen(true);
+  };
+
+  const leaveDays =
+    leaveFrom && leaveTo
+      ? Math.max(
+          0,
+          Math.round((new Date(leaveTo).getTime() - new Date(leaveFrom).getTime()) / 86_400_000) + 1,
+        )
+      : 0;
+
+  const stepValid = (step: number) => {
+    if (step === 1) return Boolean(leaveType);
+    if (step === 2) return Boolean(leaveFrom && leaveTo && leaveDays > 0);
+    return leaveReason.trim().length >= 5;
+  };
 
   const handlePunch = () => {
     if (!punchIn) {
@@ -165,6 +200,7 @@ function SelfServicePage() {
     setLeaveFrom("");
     setLeaveTo("");
     setLeaveReason("");
+    setLeaveStep(1);
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
   };
 
@@ -249,7 +285,7 @@ function SelfServicePage() {
         title="Employee self service"
         description="Everything an employee needs, in three clicks or fewer."
         actions={
-          <Button variant="secondary" onClick={() => setLeaveOpen(true)}>
+          <Button variant="secondary" onClick={() => openLeaveForm()}>
             <Plus className="size-4" />
             <span>New request</span>
           </Button>
@@ -326,7 +362,12 @@ function SelfServicePage() {
         <section id="leaves" className="surface-card scroll-mt-20 p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">Leaves</h2>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setLeaveOpen(true)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hidden rounded-lg md:inline-flex"
+              onClick={() => openLeaveForm()}
+            >
               <CalendarDays className="size-4" />
               <span>Request leave</span>
             </Button>
@@ -350,6 +391,10 @@ function SelfServicePage() {
               {requests.find((r) => r.status === "Approved")?.period ?? "No approved leave scheduled"}
             </p>
           </div>
+          <Button className="mt-4 h-12 w-full rounded-xl text-base md:hidden" onClick={() => openLeaveForm()}>
+            <CalendarDays className="size-5" />
+            <span>Request leave</span>
+          </Button>
         </section>
       </div>
 
@@ -410,7 +455,82 @@ function SelfServicePage() {
             )}
           </BulkBar>
 
-          <div className="overflow-x-auto">
+          {/* Mobile: swipe-friendly cards with large actions */}
+          <ul className="divide-y divide-border md:hidden">
+            {filtered.length === 0 ? (
+              <li className="py-10 text-center text-sm text-muted-foreground">No requests match this search.</li>
+            ) : null}
+            {filtered.map((r) => (
+              <li key={r.id} className="space-y-3 p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    aria-label={`Select ${r.id}`}
+                    className="mt-1 size-5"
+                    checked={selection.isSelected(r.id)}
+                    onCheckedChange={() => selection.toggle(r.id)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{r.type}</p>
+                    <p className="truncate text-xs text-muted-foreground tabular-nums">
+                      {r.id} · submitted {r.submitted}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={statusStyles[r.status]}>
+                    {r.status}
+                  </Badge>
+                </div>
+                <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Period</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">{r.period}</p>
+                  </div>
+                  <div className="min-w-[6rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Days</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">{r.days || "—"}</p>
+                  </div>
+                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Balance</p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">
+                      {r.status === "Rejected" ? `${r.balanceBefore} (unchanged)` : `${r.balanceBefore} → ${r.balanceAfter}`}
+                    </p>
+                  </div>
+                  <div className="min-w-[14rem] shrink-0 snap-start rounded-xl border border-border p-3">
+                    <p className="text-[11px] text-muted-foreground">Reason</p>
+                    <p className="mt-1 text-sm">{r.reason}</p>
+                  </div>
+                </div>
+                {canApprove && r.status === "Pending" ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      className="h-11 rounded-xl"
+                      onClick={() => {
+                        applyDecision([r.id], "Approved");
+                        toast.success(`${r.id} approved`);
+                      }}
+                    >
+                      <Check className="size-5" />
+                      <span>Approve</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-xl"
+                      onClick={() => {
+                        applyDecision([r.id], "Rejected");
+                        toast.success(`${r.id} rejected`);
+                      }}
+                    >
+                      <X className="size-5" />
+                      <span>Reject</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{r.decision}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
@@ -555,6 +675,121 @@ function SelfServicePage() {
               <dd className="mt-1 font-medium">Technology</dd>
             </div>
           </dl>
+
+          <div className="mt-5 border-t border-border pt-4">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="size-4 text-primary" />
+              Security
+            </h3>
+
+            <div className="mt-3 space-y-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Two-factor authentication</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {twoFactor ? "Enabled · code sent to your phone" : "Add a second step at sign-in"}
+                  </p>
+                </div>
+                <Switch
+                  checked={twoFactor}
+                  aria-label="Two-factor authentication"
+                  onCheckedChange={(v) => {
+                    setTwoFactor(v);
+                    toast.success(v ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
+                  }}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Biometric unlock</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Face or fingerprint on this device</p>
+                </div>
+                <Switch
+                  checked={biometrics}
+                  aria-label="Biometric unlock"
+                  onCheckedChange={(v) => {
+                    setBiometrics(v);
+                    toast.success(v ? "Biometric unlock on" : "Biometric unlock off");
+                  }}
+                />
+              </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <Label htmlFor="session-timeout" className="text-sm font-medium">
+                  Session timeout
+                </Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">Sign out automatically when idle</p>
+                <Select
+                  value={sessionTimeout}
+                  onValueChange={(v) => {
+                    setSessionTimeout(v);
+                    toast.success(`Session timeout set to ${v} minutes`);
+                  }}
+                >
+                  <SelectTrigger id="session-timeout" className="mt-2 h-11 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["15", "30", "60", "120"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m} minutes
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">Devices &amp; sessions</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-lg"
+                    onClick={() => {
+                      setDevices((prev) => prev.filter((d) => d.current));
+                      toast.success("Signed out of all other devices");
+                    }}
+                  >
+                    Sign out others
+                  </Button>
+                </div>
+                <ul className="mt-3 divide-y divide-border">
+                  {devices.map((d) => (
+                    <li key={d.name} className="flex items-start gap-3 py-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground">
+                        <d.icon className="size-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{d.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {d.location} · {d.lastActive}
+                        </p>
+                      </div>
+                      {d.current ? (
+                        <Badge variant="outline" className="border-success/40 text-success">
+                          This device
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-lg text-destructive"
+                          onClick={() => {
+                            setDevices((prev) => prev.filter((x) => x.name !== d.name));
+                            toast.success(`${d.name} signed out`);
+                          }}
+                        >
+                          Revoke
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="surface-card p-5">
@@ -579,54 +814,137 @@ function SelfServicePage() {
       </div>
 
       <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl sm:max-w-md">
+          <DialogHeader className="text-left">
             <DialogTitle>Request leave</DialogTitle>
-            <DialogDescription>Submit a leave request for manager approval.</DialogDescription>
+            <DialogDescription>
+              Step {leaveStep} of 3 ·{" "}
+              {leaveStep === 1 ? "Choose leave type" : leaveStep === 2 ? "Pick your dates" : "Add a reason"}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="leave-type">Leave type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger id="leave-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {balances.map((b) => (
-                    <SelectItem key={b.type} value={b.type}>
-                      {b.type} · {b.total - b.used} left
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="leave-from">From</Label>
-                <Input id="leave-from" type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="leave-to">To</Label>
-                <Input id="leave-to" type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="leave-reason">Reason</Label>
-              <Textarea
-                id="leave-reason"
-                rows={3}
-                maxLength={280}
-                value={leaveReason}
-                onChange={(e) => setLeaveReason(e.target.value)}
-                placeholder="Why do you need this leave?"
+
+          <div className="flex gap-1.5" aria-hidden>
+            {[1, 2, 3].map((s) => (
+              <span
+                key={s}
+                className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                  s <= leaveStep ? "bg-primary" : "bg-muted"
+                }`}
               />
-            </div>
+            ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setLeaveOpen(false)}>
-              Cancel
+
+          <div className="space-y-4">
+            {leaveStep === 1 ? (
+              <div className="space-y-2">
+                <Label htmlFor="leave-type">Leave type</Label>
+                <div className="grid gap-2">
+                  {balances.map((b) => (
+                    <button
+                      key={b.type}
+                      type="button"
+                      onClick={() => setLeaveType(b.type)}
+                      className={`flex items-center justify-between rounded-xl border p-4 text-left transition-colors ${
+                        leaveType === b.type ? "border-primary bg-primary/5" : "border-border hover:bg-secondary"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{b.type}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {b.total - b.used} days left
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <Select value={leaveType} onValueChange={setLeaveType}>
+                  <SelectTrigger id="leave-type" className="sr-only">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {balances.map((b) => (
+                      <SelectItem key={b.type} value={b.type}>
+                        {b.type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {leaveStep === 2 ? (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-from">From</Label>
+                  <Input
+                    id="leave-from"
+                    type="date"
+                    className="h-12 rounded-xl"
+                    value={leaveFrom}
+                    onChange={(e) => setLeaveFrom(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-to">To</Label>
+                  <Input
+                    id="leave-to"
+                    type="date"
+                    className="h-12 rounded-xl"
+                    value={leaveTo}
+                    onChange={(e) => setLeaveTo(e.target.value)}
+                  />
+                </div>
+                <p className="rounded-xl border border-border p-3 text-sm text-muted-foreground">
+                  {leaveDays > 0
+                    ? `${leaveDays} day${leaveDays === 1 ? "" : "s"} of ${leaveType.toLowerCase()} leave`
+                    : "Pick a start and end date."}
+                </p>
+              </div>
+            ) : null}
+
+            {leaveStep === 3 ? (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="leave-reason">Reason</Label>
+                  <Textarea
+                    id="leave-reason"
+                    rows={4}
+                    maxLength={280}
+                    className="rounded-xl"
+                    value={leaveReason}
+                    onChange={(e) => setLeaveReason(e.target.value)}
+                    placeholder="Why do you need this leave?"
+                  />
+                </div>
+                <div className="rounded-xl border border-border p-3 text-sm">
+                  <p className="font-medium">{leaveType} leave</p>
+                  <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+                    {leaveFrom} → {leaveTo} · {leaveDays} day{leaveDays === 1 ? "" : "s"}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <DialogFooter className="flex-row gap-2">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl"
+              onClick={() => (leaveStep === 1 ? setLeaveOpen(false) : setLeaveStep((s) => s - 1))}
+            >
+              {leaveStep === 1 ? "Cancel" : "Back"}
             </Button>
-            <Button onClick={submitLeave}>Submit request</Button>
+            {leaveStep < 3 ? (
+              <Button
+                className="h-12 flex-1 rounded-xl"
+                disabled={!stepValid(leaveStep)}
+                onClick={() => setLeaveStep((s) => s + 1)}
+              >
+                Continue
+              </Button>
+            ) : (
+              <Button className="h-12 flex-1 rounded-xl" onClick={submitLeave}>
+                Submit request
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

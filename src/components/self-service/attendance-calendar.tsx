@@ -1,9 +1,17 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, LogIn, LogOut, MapPin, Smartphone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { PunchRecord } from "@/data/modules";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const stateTone: Record<string, string> = {
   "On time": "border-success/40 text-success",
@@ -24,6 +32,7 @@ const dayDot: Record<string, string> = {
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
+  const isMobile = useIsMobile();
   const months = useMemo(() => {
     const set = Array.from(new Set(records.map((r) => r.date.slice(0, 7))));
     return set.sort();
@@ -49,6 +58,15 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
   }, [monthRecords]);
 
   const detail = selected ? byDate.get(selected) : null;
+  const detailLabel = selected
+    ? new Date(`${selected}T00:00:00Z`).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : "";
 
   return (
     <section className="surface-card p-5">
@@ -110,7 +128,7 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
               type="button"
               onClick={() => setSelected(isSelected ? null : key)}
               aria-label={`${key}${rec ? ` · ${rec.state}` : ""}`}
-              className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-xs transition-colors ${
+              className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-xs transition-all duration-200 active:scale-95 ${
                 isSelected ? "border-primary bg-primary/10 font-semibold" : "border-border hover:bg-secondary"
               }`}
             >
@@ -121,7 +139,7 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
         })}
       </div>
 
-      <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-border p-3">
+      <div className="mx-auto mt-4 hidden max-w-2xl rounded-xl border border-border p-3 md:block">
         {detail ? (
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="font-medium tabular-nums">{detail.date}</span>
@@ -137,6 +155,73 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
           <p className="text-xs text-muted-foreground">Pick a day to see the check-in and check-out times.</p>
         )}
       </div>
+
+      <p className="mt-3 text-center text-xs text-muted-foreground md:hidden">
+        Tap a day to see the full punch details.
+      </p>
+
+      {/* Mobile-friendly punch detail modal */}
+      <Dialog
+        open={Boolean(detail) && isMobile}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null);
+        }}
+      >
+        <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl sm:max-w-sm md:hidden">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-base">{detailLabel}</DialogTitle>
+            <DialogDescription>Punch details for this day</DialogDescription>
+          </DialogHeader>
+          {detail ? (
+            <div className="space-y-3">
+              <Badge variant="outline" className={stateTone[detail.state] ?? ""}>
+                {detail.state}
+              </Badge>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-border p-3">
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LogIn className="size-3.5" /> Check in
+                  </p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">{detail.in}</p>
+                </div>
+                <div className="rounded-xl border border-border p-3">
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LogOut className="size-3.5" /> Check out
+                  </p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">{detail.out}</p>
+                </div>
+              </div>
+              <ul className="divide-y divide-border rounded-xl border border-border">
+                <li className="flex items-center gap-2 p-3 text-sm">
+                  <Clock className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">Worked</span>
+                  <span className="ml-auto font-medium tabular-nums">{detail.hours}</span>
+                </li>
+                <li className="flex items-start gap-2 p-3 text-sm">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">Location</span>
+                  <span className="ml-auto min-w-0 text-right font-medium">
+                    {detail.location ?? "Not recorded"}
+                    {detail.coords && detail.coords !== "—" ? (
+                      <span className="block text-xs font-normal tabular-nums text-muted-foreground">
+                        {detail.coords}
+                      </span>
+                    ) : null}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 p-3 text-sm">
+                  <Smartphone className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">Method</span>
+                  <span className="ml-auto font-medium">{detail.method ?? "—"}</span>
+                </li>
+              </ul>
+              <Button className="h-11 w-full rounded-xl" onClick={() => setSelected(null)}>
+                Close
+              </Button>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
