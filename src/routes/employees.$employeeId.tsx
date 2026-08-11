@@ -475,52 +475,335 @@ function EmployeeDetailPage() {
                 {data.site.geofence ? "Geofence on" : "Geofence off"}
               </Badge>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-border p-4">
-              <Clock className="size-5 text-muted-foreground" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{punchedIn ? "Currently checked in" : "Not checked in"}</p>
-                <p className="text-xs text-muted-foreground">
-                  {punchAt ? `${punchedIn ? "Since" : "Last punch"} ${punchAt}` : "No punch recorded today"}
-                </p>
+            <div className="mt-5 space-y-4 rounded-xl border border-border p-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Punch method</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(["GPS", "QR", "Manual"] as const).map((m) => (
+                    <Button
+                      key={m}
+                      size="sm"
+                      variant={punchMethod === m ? "default" : "outline"}
+                      className="rounded-lg"
+                      onClick={() => setPunchMethod(m)}
+                    >
+                      {m === "GPS" ? <Crosshair className="size-4" /> : m === "QR" ? <QrCode className="size-4" /> : <Clock className="size-4" />}
+                      <span>{m}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <Button onClick={togglePunch} variant={punchedIn ? "destructive" : "default"}>
-                <CheckCircle2 className="size-4" />
-                <span>{punchedIn ? "Check out" : "Check in"}</span>
-              </Button>
+
+              {punchMethod === "GPS" ? (
+                <div className="flex flex-wrap items-center gap-3 rounded-lg bg-secondary/60 p-3">
+                  <Crosshair className="size-4 text-primary" />
+                  <p className="min-w-0 flex-1 text-sm">
+                    {gps ? `Captured ${gps}` : "No position captured yet"}
+                    <span className="block text-xs text-muted-foreground">Geofence radius {data.site.radius}</span>
+                  </p>
+                  <Button size="sm" variant="secondary" onClick={captureGps}>Capture GPS</Button>
+                </div>
+              ) : null}
+
+              {punchMethod === "QR" ? (
+                <div className="flex flex-wrap items-center gap-3 rounded-lg bg-secondary/60 p-3">
+                  <QrCode className="size-4 text-primary" />
+                  <Input
+                    value={qrCode}
+                    onChange={(e) => setQrCode(e.target.value.slice(0, 32))}
+                    placeholder="Worksite QR code"
+                    aria-label="Worksite QR code"
+                    className="h-9 min-w-0 flex-1 rounded-lg"
+                  />
+                  <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="secondary">Scan</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-sm">
+                      <DialogHeader>
+                        <DialogTitle>Scan worksite QR</DialogTitle>
+                        <DialogDescription>Point the camera at the QR poster at {data.site.name}.</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid aspect-square place-items-center rounded-xl border-2 border-dashed border-border">
+                        <QrCode className="size-16 text-muted-foreground" />
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          onClick={() => {
+                            const code = `${data.site.name.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+                            setQrCode(code);
+                            setQrOpen(false);
+                            toast.success(`QR captured · ${code}`);
+                          }}
+                        >
+                          Simulate scan
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Clock className="size-5 text-muted-foreground" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{punchedIn ? "Currently checked in" : "Not checked in"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {punchAt ? `${punchedIn ? "Since" : "Last punch"} ${punchAt}` : "No punch recorded today"}
+                  </p>
+                </div>
+                <Button onClick={togglePunch} variant={punchedIn ? "destructive" : "default"}>
+                  <CheckCircle2 className="size-4" />
+                  <span>{punchedIn ? "Check out" : "Check in"}</span>
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          <section className="surface-card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold">Punch history</h3>
+              <select
+                value={selectedDay}
+                onChange={(e) => setSelectedDay(e.target.value)}
+                aria-label="Select day"
+                className="h-9 rounded-lg border border-border bg-background px-3 text-sm"
+              >
+                <option value="today">Today</option>
+                {data.punches.map((p) => (
+                  <option key={p.date} value={p.date}>{p.date}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {selectedDay === "today" ? (
+                todayPunches.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    No punches recorded today yet.
+                  </p>
+                ) : (
+                  todayPunches.map((p) => (
+                    <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3">
+                      <Badge variant="outline" className={p.kind === "Check in" ? "border-success/40 text-success" : "border-primary/40 text-primary"}>
+                        {p.kind}
+                      </Badge>
+                      <span className="text-sm font-semibold tabular-nums">{p.time}</span>
+                      <span className="text-xs text-muted-foreground">{p.method} · {p.source}</span>
+                    </div>
+                  ))
+                )
+              ) : (
+                (() => {
+                  const day = data.punches.find((p) => p.date === selectedDay);
+                  if (!day) return null;
+                  return (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      <Field icon={Clock} label="Check in" value={day.in} />
+                      <Field icon={Clock} label="Check out" value={day.out} />
+                      <Field label="Hours" value={String(day.hours)} />
+                      <Field icon={MapPin} label="Location" value={day.location ?? data.site.name} />
+                    </div>
+                  );
+                })()
+              )}
             </div>
           </section>
         </TabsContent>
 
-        <TabsContent value="documents">
+        <TabsContent value="documents" className="space-y-4">
+          <section className="surface-card flex flex-wrap items-center gap-3 p-4">
+            <Input
+              value={docQuery}
+              onChange={(e) => setDocQuery(e.target.value.slice(0, 80))}
+              placeholder="Search documents or tags…"
+              aria-label="Search employee documents"
+              className="h-10 min-w-0 flex-1 rounded-xl"
+            />
+            <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Upload className="size-4" />
+                  <span>Upload document</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Upload document</DialogTitle>
+                  <DialogDescription>Files are encrypted at rest, versioned and queued for OCR.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="doc-file">File</Label>
+                    <Input
+                      id="doc-file"
+                      type="file"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) setUpload((u) => ({ ...u, name: f.name }));
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="doc-name">Document name</Label>
+                    <Input
+                      id="doc-name"
+                      value={upload.name}
+                      maxLength={80}
+                      onChange={(e) => setUpload((u) => ({ ...u, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="doc-category">Category</Label>
+                      <select
+                        id="doc-category"
+                        value={upload.category}
+                        onChange={(e) => setUpload((u) => ({ ...u, category: e.target.value }))}
+                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {["Contract", "Identity", "Certificate", "Licence", "Benefit", "Finance", "Policy"].map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="doc-expiry">Expires</Label>
+                      <Input
+                        id="doc-expiry"
+                        type="date"
+                        value={upload.expires}
+                        onChange={(e) => setUpload((u) => ({ ...u, expires: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="doc-tags">Tags (comma separated)</Label>
+                    <Input
+                      id="doc-tags"
+                      value={upload.tags}
+                      maxLength={100}
+                      placeholder="onboarding, signed, hr-verified"
+                      onChange={(e) => setUpload((u) => ({ ...u, tags: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setUploadOpen(false)}>Cancel</Button>
+                  <Button onClick={addUpload}>Upload</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </section>
+
           <section className="surface-card overflow-x-auto">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
                   <TableHead>Document</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>Version</TableHead>
                   <TableHead>Size</TableHead>
                   <TableHead>Expires</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.docs.map((d) => (
+                {filteredDocs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                      No documents match this search.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+                {filteredDocs.map((d) => (
                   <TableRow key={d.name}>
                     <TableCell className="flex items-center gap-2 font-medium">
                       <FileText className="size-4 text-muted-foreground" />
                       {d.name}
                     </TableCell>
                     <TableCell>{d.category}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {d.tags.map((t) => (
+                          <Badge key={t} variant="secondary" className="gap-1 text-[11px] font-normal">
+                            {t}
+                            <button
+                              type="button"
+                              aria-label={`Remove tag ${t} from ${d.name}`}
+                              onClick={() =>
+                                setDocs((prev) =>
+                                  prev.map((x) => (x.name === d.name ? { ...x, tags: x.tags.filter((y) => y !== t) } : x)),
+                                )
+                              }
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          aria-label={`Add tag to ${d.name}`}
+                          onClick={() => {
+                            setTagTarget(d.name);
+                            setNewTag("");
+                          }}
+                        >
+                          <Plus className="size-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell>{d.version}</TableCell>
                     <TableCell>{d.size}</TableCell>
                     <TableCell>{d.expires}</TableCell>
                     <TableCell><Pill value={d.status} /></TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" variant="outline" className="rounded-lg" onClick={() => secureDownload(d.name)}>
+                        <Lock className="size-3.5" />
+                        <Download className="size-3.5" />
+                        <span className="sr-only sm:not-sr-only">Secure download</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </section>
+
+          <Dialog open={tagTarget !== null} onOpenChange={(o) => !o && setTagTarget(null)}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Add tag</DialogTitle>
+                <DialogDescription>Tags power search, retention rules and bulk actions.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-1.5">
+                <Label htmlFor="new-tag">Tag</Label>
+                <Input id="new-tag" value={newTag} maxLength={24} onChange={(e) => setNewTag(e.target.value)} />
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    const tag = newTag.trim();
+                    if (!tag || !tagTarget) return;
+                    setDocs((prev) =>
+                      prev.map((x) =>
+                        x.name === tagTarget && !x.tags.includes(tag) ? { ...x, tags: [...x.tags, tag] } : x,
+                      ),
+                    );
+                    setTagTarget(null);
+                    toast.success(`Tagged “${tag}”`);
+                  }}
+                >
+                  <Tag className="size-4" />
+                  <span>Add tag</span>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>
