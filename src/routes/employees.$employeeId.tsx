@@ -54,7 +54,7 @@ function Pill({ value }: { value: string }) {
   );
 }
 
-function Field({ icon: Icon, label, value }: { icon?: React.ElementType; label: string; value?: string }) {
+function Field({ icon: Icon, label, value }: { icon?: React.ElementType; label: string; value?: string | undefined }) {
   return (
     <div className="rounded-xl border border-border p-3">
       <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
