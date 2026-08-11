@@ -78,6 +78,23 @@ function EmployeeDetailPage() {
   const employee = getEmployee(employeeId);
   const [punchedIn, setPunchedIn] = useState(false);
   const [punchAt, setPunchAt] = useState<string | null>(null);
+  const [punchMethod, setPunchMethod] = useState<"GPS" | "QR" | "Manual">("GPS");
+  const [gps, setGps] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
+  const [todayPunches, setTodayPunches] = useState<
+    { id: string; kind: "Check in" | "Check out"; time: string; method: string; source: string }[]
+  >([]);
+  const [selectedDay, setSelectedDay] = useState("today");
+
+  const [docs, setDocs] = useState<(EmployeeDoc & { tags: string[] })[]>(() =>
+    employee ? employeeDocs(employee).map((d) => ({ ...d, tags: [d.category] })) : [],
+  );
+  const [docQuery, setDocQuery] = useState("");
+  const [tagTarget, setTagTarget] = useState<string | null>(null);
+  const [newTag, setNewTag] = useState("");
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [upload, setUpload] = useState({ name: "", category: "Contract", tags: "", expires: "" });
 
   const data = useMemo(() => {
     if (!employee) return null;
@@ -107,9 +124,80 @@ function EmployeeDetailPage() {
 
   const togglePunch = () => {
     const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (punchMethod === "GPS" && !gps) {
+      toast.error("Capture your GPS position first.");
+      return;
+    }
+    if (punchMethod === "QR" && !qrCode.trim()) {
+      toast.error("Scan or enter the worksite QR code first.");
+      return;
+    }
+    const source = punchMethod === "GPS" ? (gps ?? "") : punchMethod === "QR" ? `QR ${qrCode.trim()}` : "Manual entry";
+    const kind = punchedIn ? ("Check out" as const) : ("Check in" as const);
+    setTodayPunches((prev) => [
+      { id: `${kind}-${now}-${prev.length}`, kind, time: now, method: punchMethod, source },
+      ...prev,
+    ]);
     setPunchedIn((p) => !p);
     setPunchAt(now);
-    toast.success(punchedIn ? `Checked out at ${now}` : `Checked in at ${now} · ${data.site.name}`);
+    setSelectedDay("today");
+    toast.success(`${kind} at ${now} · ${data.site.name} · ${punchMethod}`);
+  };
+
+  const captureGps = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGps(data.site.coords);
+      toast.info("Device GPS unavailable — using worksite coordinates.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        setGps(coords);
+        toast.success(`Position captured · ${coords}`);
+      },
+      () => {
+        setGps(data.site.coords);
+        toast.info("Location denied — falling back to worksite coordinates.");
+      },
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  };
+
+  const filteredDocs = docs.filter((d) => {
+    const q = docQuery.trim().toLowerCase();
+    if (!q) return true;
+    return [d.name, d.category, d.status, ...d.tags].join(" ").toLowerCase().includes(q);
+  });
+
+  const secureDownload = (name: string) => {
+    const token = Math.random().toString(36).slice(2, 10).toUpperCase();
+    toast.success(`Secure link generated for ${name}`, {
+      description: `Signed token ${token} · expires in 5 minutes · access logged`,
+    });
+  };
+
+  const addUpload = () => {
+    if (!upload.name.trim()) {
+      toast.error("Choose a file or enter a document name.");
+      return;
+    }
+    const existing = docs.find((d) => d.name.toLowerCase() === upload.name.trim().toLowerCase());
+    const version = existing ? `v${Number(existing.version.replace("v", "")) + 1}` : "v1";
+    const tags = upload.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    const row = {
+      name: upload.name.trim(),
+      category: upload.category,
+      version,
+      size: `${(120 + Math.floor(Math.random() * 900))} KB`,
+      expires: upload.expires || "—",
+      status: "Valid" as const,
+      tags: tags.length ? tags : [upload.category],
+    };
+    setDocs((prev) => [row, ...prev.filter((d) => d.name !== row.name)]);
+    setUpload({ name: "", category: "Contract", tags: "", expires: "" });
+    setUploadOpen(false);
+    toast.success(`${row.name} uploaded · ${version} · queued for OCR`);
   };
 
   const initials = employee.name.split(" ").map((p) => p[0]).join("");
