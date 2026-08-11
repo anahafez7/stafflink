@@ -9,7 +9,49 @@ export type Employee = {
   joined: string;
   email: string;
   tags: string[];
+  avatar?: string;
+  extraEmail?: string;
+  password?: string;
+  phone?: string;
+  autoId?: boolean;
+  city?: string;
+  district?: string;
+  position?: string;
+  gender?: string;
+  manager?: string;
+  idKind?: "National ID" | "Passport";
+  nationalId?: string;
+  idIssueDate?: string;
+  idExpiryDate?: string;
+  addressOnId?: string;
+  contractStart?: string;
+  contractEnd?: string;
+  medicalInsurance?: string;
+  socialInsuranceDate?: string;
+  militaryExpireDate?: string;
+  customFields?: { label: string; value: string }[];
+  salaryBasis?: "Gross" | "Net";
+  salaryGross?: string;
+  salaryNet?: string;
+  allowance?: string;
+  targetValue?: string;
+  targetDuration?: "Monthly" | "Quarterly" | "Yearly";
+  disabilityQuota?: boolean;
+  isInsured?: boolean;
+  allowPastExpiry?: boolean;
 };
+
+export const cities = ["Cairo", "Giza", "Alexandria", "Dubai", "Riyadh"] as const;
+
+export const districtsByCity: Record<string, string[]> = {
+  Cairo: ["Nasr City", "Maadi", "Heliopolis", "New Cairo"],
+  Giza: ["Dokki", "Mohandessin", "6th of October", "Sheikh Zayed"],
+  Alexandria: ["Smouha", "Sidi Gaber", "Miami", "Montaza"],
+  Dubai: ["Deira", "Business Bay", "Marina", "Jumeirah"],
+  Riyadh: ["Olaya", "Al Malaz", "Al Nakheel", "Diplomatic Quarter"],
+};
+
+export const genders = ["Male", "Female"] as const;
 
 export const departments = [
   "Human Resources",
