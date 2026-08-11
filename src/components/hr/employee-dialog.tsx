@@ -160,7 +160,7 @@ export function EmployeeDialog({
       form.idExpiryDate < new Date().toISOString().slice(0, 10)
     )
       return setError("ID expiry date is in the past. Enable the admin override to continue.");
-    onSave({ ...form, name, email, salaryNet: computedNet });
+    onSave({ ...form, name, email, salaryNet: computedNet ?? "" });
     onOpenChange(false);
   };
 
@@ -254,7 +254,7 @@ export function EmployeeDialog({
             </Select>
           </Field>
           <Field label="City">
-            <Select value={form.city || undefined} onValueChange={(v) => setForm((p) => ({ ...p, city: v, district: "" }))}>
+            <Select value={form.city ?? ""} onValueChange={(v) => setForm((p) => ({ ...p, city: v, district: "" }))}>
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
                 {cities.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -263,7 +263,7 @@ export function EmployeeDialog({
           </Field>
 
           <Field label="District">
-            <Select value={form.district || undefined} onValueChange={(v) => set("district", v)} disabled={!form.city}>
+            <Select value={form.district ?? ""} onValueChange={(v) => set("district", v)} disabled={!form.city}>
               <SelectTrigger><SelectValue placeholder={form.city ? "—" : "Select a city first"} /></SelectTrigger>
               <SelectContent>
                 {districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
@@ -287,7 +287,7 @@ export function EmployeeDialog({
             </Select>
           </Field>
           <Field label="Gender">
-            <Select value={form.gender || undefined} onValueChange={(v) => set("gender", v)}>
+            <Select value={form.gender ?? ""} onValueChange={(v) => set("gender", v)}>
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
                 {genders.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
@@ -296,7 +296,7 @@ export function EmployeeDialog({
           </Field>
 
           <Field label="Manager">
-            <Select value={form.manager || undefined} onValueChange={(v) => set("manager", v)}>
+            <Select value={form.manager ?? ""} onValueChange={(v) => set("manager", v)}>
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
                 {managers.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -411,7 +411,7 @@ export function EmployeeDialog({
         {/* Payroll */}
         <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2 xl:grid-cols-4">
           <Field label="Salary Basis">
-            <Select value={form.salaryBasis} onValueChange={(v) => set("salaryBasis", v as Employee["salaryBasis"])}>
+            <Select value={form.salaryBasis ?? "Gross"} onValueChange={(v) => set("salaryBasis", v as Employee["salaryBasis"])}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["Gross", "Net"].map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
@@ -444,7 +444,7 @@ export function EmployeeDialog({
             <Input id="emp-target" inputMode="decimal" value={form.targetValue ?? ""} onChange={(e) => set("targetValue", e.target.value)} />
           </Field>
           <Field label="Target Duration">
-            <Select value={form.targetDuration} onValueChange={(v) => set("targetDuration", v as Employee["targetDuration"])}>
+            <Select value={form.targetDuration ?? "Monthly"} onValueChange={(v) => set("targetDuration", v as Employee["targetDuration"])}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["Monthly", "Quarterly", "Yearly"].map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
