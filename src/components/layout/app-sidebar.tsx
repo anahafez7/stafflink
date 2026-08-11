@@ -57,22 +57,13 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 py-4">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={logoAsset.url}
+            src="/favicon.png"
             alt="StaffLink logo"
-            className="size-9 shrink-0 rounded-xl bg-white object-contain object-left p-1"
-            style={{ objectPosition: "left center" }}
-          />
-          <img
-            src={logoAsset.url}
-            alt=""
-            aria-hidden
-            className="hidden h-8 min-w-0 object-contain object-left"
+            className="size-9 shrink-0 rounded-xl bg-white object-contain p-0.5"
           />
           <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="block truncate text-sm font-semibold text-sidebar-foreground">
-              StaffLink
-            </span>
-            <span className="block truncate text-[11px] text-sidebar-foreground/60">
+            <img src={logoAsset.url} alt="StaffLink" className="h-6 w-auto max-w-[9rem] object-contain object-left" />
+            <span className="mt-1 block truncate text-[11px] text-sidebar-foreground/60">
               Enterprise HRMS
             </span>
           </span>

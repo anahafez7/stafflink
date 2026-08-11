@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { demoAccounts, roleLabels, useAuth } from "@/lib/auth";
+import logoAsset from "@/assets/stafflink-logo.png.asset.json";
 
 export function LoginScreen() {
   const { signIn } = useAuth();
@@ -21,14 +22,8 @@ export function LoginScreen() {
   return (
     <div className="grid min-h-dvh w-full lg:grid-cols-2">
       <div className="gradient-header hidden flex-col justify-between p-10 text-brand-foreground lg:flex">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-brand-foreground/15 font-bold">
-            SL
-          </span>
-          <span>
-            <span className="block text-sm font-semibold">StaffLink</span>
-            <span className="block text-xs text-brand-foreground/70">Enterprise HRMS</span>
-          </span>
+        <div className="rounded-2xl bg-brand-foreground/95 p-5">
+          <img src={logoAsset.url} alt="StaffLink logo" className="h-24 w-auto object-contain" />
         </div>
         <div className="max-w-md space-y-4">
           <h2 className="text-3xl font-semibold leading-tight">
@@ -44,7 +39,12 @@ export function LoginScreen() {
 
       <div className="flex items-center justify-center bg-background p-6">
         <div className="w-full max-w-sm space-y-6">
-          <div className="space-y-1.5">
+          <div className="space-y-3">
+            <img
+              src={logoAsset.url}
+              alt="StaffLink logo"
+              className="h-20 w-auto object-contain object-left sm:h-24"
+            />
             <h1 className="text-2xl font-semibold tracking-tight">Sign in to StaffLink</h1>
             <p className="text-sm text-muted-foreground">
               Use a demo account below to explore role-based access.
