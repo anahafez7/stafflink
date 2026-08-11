@@ -4,6 +4,7 @@ import {
   ArrowLeft, Briefcase, Building2, CalendarDays, CheckCircle2, Clock, CreditCard,
   FileText, Mail, MapPin, Package, Phone, Wallet,
 } from "lucide-react";
+import { Crosshair, Download, Lock, Plus, QrCode, Tag, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -11,6 +12,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
