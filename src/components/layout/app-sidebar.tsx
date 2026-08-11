@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type ModuleKey } from "@/lib/auth";
+import logoAsset from "@/assets/stafflink-logo.png.asset.json";
 
 const workspace = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
@@ -55,14 +56,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-sidebar-border">
       <SidebarHeader className="px-3 py-4">
         <Link to="/" className="flex items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold">
-            SL
-          </span>
+          <img
+            src="/favicon.png"
+            alt="StaffLink logo"
+            className="size-9 shrink-0 rounded-xl bg-white object-contain p-0.5"
+          />
           <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="block truncate text-sm font-semibold text-sidebar-foreground">
-              StaffLink
-            </span>
-            <span className="block truncate text-[11px] text-sidebar-foreground/60">
+            <img src={logoAsset.url} alt="StaffLink" className="h-6 w-auto max-w-[9rem] object-contain object-left" />
+            <span className="mt-1 block truncate text-[11px] text-sidebar-foreground/60">
               Enterprise HRMS
             </span>
           </span>
