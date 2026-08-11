@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Pencil, Plus, Search, Tag, Trash2, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ const statusStyles: Record<string, string> = {
 };
 
 function HRPage() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<Employee[]>(seedEmployees);
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("all");
@@ -287,8 +288,22 @@ function HRPage() {
                 </TableRow>
               ) : null}
               {filtered.map((e) => (
-                <TableRow key={e.id} data-state={selection.isSelected(e.id) ? "selected" : undefined}>
-                  <TableCell>
+                <TableRow
+                  key={e.id}
+                  data-state={selection.isSelected(e.id) ? "selected" : undefined}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Open ${e.name} profile`}
+                  className="cursor-pointer"
+                  onClick={() => navigate({ to: "/employees/$employeeId", params: { employeeId: e.id } })}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate({ to: "/employees/$employeeId", params: { employeeId: e.id } });
+                    }
+                  }}
+                >
+                  <TableCell onClick={(event) => event.stopPropagation()}>
                     <Checkbox
                       aria-label={`Select ${e.name}`}
                       checked={selection.isSelected(e.id)}
@@ -330,7 +345,7 @@ function HRPage() {
                       {e.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
