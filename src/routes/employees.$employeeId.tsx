@@ -26,6 +26,7 @@ import {
   employeeAdvances, employeeAttendanceSummary, employeeBalances, employeeCustody,
   employeeDocs, employeeLeaves, employeeSite, getEmployee,
 } from "@/data/employee-detail";
+import type { EmployeeDoc } from "@/data/employee-detail";
 
 export const Route = createFileRoute("/employees/$employeeId")({
   head: () => ({
