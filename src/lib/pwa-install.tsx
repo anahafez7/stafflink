@@ -74,6 +74,14 @@ export function InstallProvider({ children }: { children: ReactNode }) {
 
 export function useInstall() {
   const ctx = useContext(InstallContext);
-  if (!ctx) throw new Error("useInstall must be used inside InstallProvider");
+  if (!ctx) {
+    return {
+      canInstall: false,
+      showBanner: false,
+      installed: false,
+      promptInstall: async () => "unavailable" as const,
+      dismissBanner: () => {},
+    };
+  }
   return ctx;
 }
