@@ -9,10 +9,10 @@ const pendingLeaves = leaveHistory.filter((r) => r.status === "Pending").length;
 const unreadDocuments = documentsList.filter((d) => d.status !== "Valid").length;
 
 const items = [
-  { label: "Home", to: "/self-service", hash: "", icon: Home, badge: 0 },
-  { label: "Attendance", to: "/self-service", hash: "attendance", icon: Fingerprint, badge: 0 },
-  { label: "Leaves", to: "/self-service", hash: "leaves", icon: CalendarDays, badge: pendingLeaves },
-  { label: "Profile", to: "/self-service", hash: "profile", icon: UserRound, badge: unreadDocuments },
+  { label: "Home", to: "/", icon: Home, badge: 0 },
+  { label: "Attendance", to: "/self-service", icon: Fingerprint, badge: 0 },
+  { label: "Leaves", to: "/leaves", icon: CalendarDays, badge: pendingLeaves },
+  { label: "Profile", to: "/profile", icon: UserRound, badge: unreadDocuments },
 ] as const;
 
 /** Mobile-only bottom navigation for the employee panel. */
@@ -29,12 +29,11 @@ export function MobileNav() {
     >
       <ul className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => {
-          const active = pathname.startsWith("/self-service") && (hash ?? "") === item.hash;
+          const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to));
           return (
             <li key={item.label}>
               <Link
                 to={item.to}
-                {...(item.hash ? { hash: item.hash } : {})}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[11px] font-medium",
