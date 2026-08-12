@@ -73,12 +73,12 @@ function ProfilePage() {
 
       <section className="surface-card p-5">
         <h2 className="text-sm font-semibold">Security</h2>
-        <div className="mt-5 flex items-center justify-between rounded-xl border border-border p-4">
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border p-4">
           <div>
             <p className="text-sm font-medium">Password</p>
             <p className="text-xs text-muted-foreground mt-0.5">Ensure your account is using a long, random password to stay secure.</p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto shrink-0">
             <Lock className="mr-2 size-4" />
             Change password
           </Button>
