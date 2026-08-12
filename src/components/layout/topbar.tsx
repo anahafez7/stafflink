@@ -19,7 +19,9 @@ export function Topbar() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-3 backdrop-blur-md sm:px-5">
       <SidebarTrigger className="shrink-0" aria-label="Toggle navigation" />
 
-      <div className="relative min-w-0 flex-1">
+      <div
+        className={`relative min-w-0 flex-1 ${user?.role === "employee" ? "hidden md:block" : ""}`}
+      >
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search employees, requests, documents…"
@@ -28,7 +30,7 @@ export function Topbar() {
         />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
         <Button variant="ghost" size="icon" aria-label="Language" className="hidden sm:inline-flex min-h-11 min-w-11">
           <Globe className="size-4" />
         </Button>
