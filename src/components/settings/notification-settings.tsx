@@ -40,8 +40,8 @@ export function NotificationSettings() {
             <Smartphone className="size-3.5" /> Installed
           </span>
         ) : (
-          <Button size="sm" variant="outline" onClick={install} disabled={!canInstall && false}>
-            <Download className="size-4" /> Install app
+          <Button size="sm" variant="outline" onClick={install}>
+            <Download className="size-4" /> {canInstall ? "Install app" : "How to install"}
           </Button>
         )}
       </div>
