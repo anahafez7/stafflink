@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ChevronRight, Plus } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { NotificationSettings } from "@/components/settings/notification-settings";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { settingsGroups, settingsToggles } from "@/data/modules";
@@ -35,6 +36,8 @@ function SettingsPage() {
           </Button>
         }
       />
+
+      <NotificationSettings />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {settingsGroups.map((group) => (
