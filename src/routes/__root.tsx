@@ -20,6 +20,8 @@ import { LoginScreen } from "@/components/auth/login-screen";
 import { AccessGuard } from "@/components/auth/access-guard";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { InstallProvider } from "@/lib/pwa-install";
+import { NotificationProvider } from "@/lib/notifications";
 
 function NotFoundComponent() {
   return (
@@ -148,8 +150,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppShell />
-        <Toaster />
+        <NotificationProvider>
+          <InstallProvider>
+            <AppShell />
+            <Toaster />
+          </InstallProvider>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
