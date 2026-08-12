@@ -36,7 +36,7 @@ function isQuiet() {
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const storageKey = `stafflink.notifications.${user?.id ?? "guest"}`;
+  const storageKey = `stafflink.notifications.${user?.email ?? "guest"}`;
   const [settings, setSettings] = useState<NotificationSettings>(defaults);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
 
