@@ -43,6 +43,7 @@ import { useSelection } from "@/hooks/use-selection";
 import { AttendanceCalendar } from "@/components/self-service/attendance-calendar";
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications";
 import {
   announcements,
   attendanceHistory,
