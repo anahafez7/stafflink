@@ -121,6 +121,14 @@ function SelfServicePage() {
   const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
 
+  useEffect(() => {
+    const expiring = documentsList.filter((d) => d.status !== "Valid").length;
+    if (expiring > 0) {
+      notify("documents", "Document expiry alert", `${expiring} document${expiring === 1 ? "" : "s"} need renewal.`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const openLeaveForm = () => {
     setLeaveStep(1);
     setLeaveOpen(true);
