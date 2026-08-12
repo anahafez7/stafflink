@@ -101,6 +101,7 @@ const initialDevices = [
 
 function SelfServicePage() {
   const { user } = useAuth();
+  const { notify } = useNotifications();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("30");
@@ -143,12 +144,14 @@ function SelfServicePage() {
       const t = clockTime();
       setPunchIn(t);
       toast.success(`Checked in at ${t}`);
+      notify("attendance", "Checked in", `Your check-in was recorded at ${t}.`);
       return;
     }
     if (!punchOut) {
       const t = clockTime();
       setPunchOut(t);
       toast.success(`Checked out at ${t}`);
+      notify("attendance", "Checked out", `Your check-out was recorded at ${t}.`);
       return;
     }
     toast.info("You already completed today's shift.");
@@ -199,10 +202,14 @@ function SelfServicePage() {
     setLeaveReason("");
     setLeaveStep(1);
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} day${days === 1 ? "" : "s"} awaiting approval.`);
   };
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
     if (ids.length === 0) return;
+    if (status !== "Pending") {
+      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request${ids.length === 1 ? "" : "s"} ${status.toLowerCase()}.`);
+    }
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
     setRequests((prev) =>
