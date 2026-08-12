@@ -25,9 +25,9 @@ import type { PunchRecord } from "@/data/modules";
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 
 const holidays: Record<string, string> = {
-  "2026-06-30": "June 30 Revolution",
-  "2026-07-02": "June 30 Revolution",
-  "2026-07-23": "Revolution Day",
+  "30-06-2026": "June 30 Revolution",
+  "02-07-2026": "June 30 Revolution",
+  "23-07-2026": "Revolution Day",
 };
 
 type Status = "Present" | "Late" | "Absent" | "Leave" | "Holiday" | "Off";
@@ -116,9 +116,23 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
 
   const summary = useMemo(() => {
     const count = (s: Status) => allRows.filter((r) => r.status === s).length;
+    let totalMins = 0;
+    allRows.forEach(r => {
+      if (r.rec?.hours) {
+        const match = r.rec.hours.match(/(\d+)h(?:\s*(\d+)m)?/);
+        if (match) {
+          totalMins += parseInt(match[1] || "0", 10) * 60 + parseInt(match[2] || "0", 10);
+        }
+      }
+    });
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    const totalHoursString = `${hrs}h ${mins}m`;
+
     return {
       counts: Object.fromEntries(statuses.map((s) => [s, count(s)])) as Record<Status, number>,
       working: allRows.filter((r) => r.status !== "Off" && r.status !== "Holiday").length,
+      totalHours: totalHoursString,
     };
   }, [allRows]);
 
@@ -203,23 +217,6 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
           </div>
         </div>
 
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-          <span>
-            <span className="font-semibold text-success tabular-nums">{summary.counts.Present}</span> present
-          </span>
-          <span>
-            <span className="font-semibold text-warning tabular-nums">{summary.counts.Late}</span> late
-          </span>
-          <span>
-            <span className="font-semibold text-destructive tabular-nums">{summary.counts.Absent}</span> absent
-          </span>
-          <span>
-            <span className="font-semibold text-primary tabular-nums">{summary.counts.Leave}</span> leave
-          </span>
-          <span>
-            / <span className="font-semibold text-foreground tabular-nums">{summary.working}</span> working days
-          </span>
-        </p>
 
         {/* Legend + filters */}
         <div className="flex flex-wrap items-center gap-2">
@@ -254,6 +251,9 @@ export function AttendanceCalendar({ records }: { records: PunchRecord[] }) {
               Show all
             </button>
           ) : null}
+          <div className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
+            Total hours: <span className="text-foreground">{summary.totalHours}</span>
+          </div>
         </div>
       </div>
 

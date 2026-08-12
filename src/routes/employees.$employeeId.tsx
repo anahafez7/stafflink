@@ -4,7 +4,7 @@ import {
   ArrowLeft, Briefcase, Building2, CalendarDays, CheckCircle2, Clock, CreditCard,
   FileText, Mail, MapPin, Package, Phone, Wallet,
 } from "lucide-react";
-import { Crosshair, Download, Lock, Plus, QrCode, Tag, Upload, X } from "lucide-react";
+import { Crosshair, Download, Lock, Plus, QrCode, Tag, Upload, X, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -18,6 +18,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -382,45 +384,95 @@ function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="attendance" className="space-y-4">
-          <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {[
-              { label: "Present", value: data.summary.present },
-              { label: "Late", value: data.summary.late },
-              { label: "Absent", value: data.summary.absent },
-              { label: "Leave", value: data.summary.leave },
-              { label: "Working days", value: data.summary.workingDays },
-            ].map((s) => (
-              <div key={s.label} className="surface-card p-4">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-                <p className="mt-1 text-xl font-semibold">{s.value}</p>
+          <section className="surface-card">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-border">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="icon" className="size-8 rounded-full">
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <span className="text-base font-semibold">July 2026</span>
+                <Button variant="outline" size="icon" className="size-8 rounded-full">
+                  <ChevronRight className="size-4" />
+                </Button>
               </div>
-            ))}
-          </section>
-          <section className="surface-card overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-secondary">
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Check in</TableHead>
-                  <TableHead>Check out</TableHead>
-                  <TableHead>Hours</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.punches.map((p) => (
-                  <TableRow key={p.date}>
-                    <TableCell className="font-medium">{p.date}</TableCell>
-                    <TableCell>{p.in}</TableCell>
-                    <TableCell>{p.out}</TableCell>
-                    <TableCell>{p.hours}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{p.location ?? "—"}</TableCell>
-                    <TableCell><Badge variant="outline" className="text-muted-foreground">{p.state}</Badge></TableCell>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5"><span className="text-success font-semibold">0</span> <span className="text-muted-foreground">present</span></div>
+                <div className="flex items-center gap-1.5"><span className="text-warning font-semibold">0</span> <span className="text-muted-foreground">late</span></div>
+                <div className="flex items-center gap-1.5"><span className="text-destructive font-semibold">20</span> <span className="text-muted-foreground">absent</span></div>
+                <div className="flex items-center gap-1.5"><span className="text-primary font-semibold">0</span> <span className="text-muted-foreground">leave</span></div>
+                <div className="flex items-center gap-1.5 border-l border-border pl-4"><span className="font-semibold">20</span> <span className="text-muted-foreground">working days</span></div>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-border hover:bg-transparent">
+                    <TableHead className="w-12 text-center pl-5">
+                      <Checkbox />
+                    </TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Date</TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Day</TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Check in</TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Check out</TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Hours</TableHead>
+                    <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-right text-xs uppercase font-semibold text-muted-foreground pr-5">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { date: "01-07-2026", day: "Wed", in: "—", out: "—", hours: "—", status: "ABSENT", tone: "destructive", info: "Unexcused absence" },
+                    { date: "02-07-2026", day: "Thu", event: "June 30 Revolution", in: "—", out: "—", hours: "—", status: "HOLIDAY", tone: "purple", info: "Public holiday" },
+                    { date: "03-07-2026", day: "Fri", in: "—", out: "—", hours: "—", status: "OFF", tone: "secondary", info: "Regular day off" },
+                    { date: "04-07-2026", day: "Sat", in: "—", out: "—", hours: "—", status: "OFF", tone: "secondary", info: "Regular day off" },
+                    { date: "05-07-2026", day: "Sun", in: "—", out: "—", hours: "—", status: "ABSENT", tone: "destructive", info: "Unexcused absence" },
+                    { date: "06-07-2026", day: "Mon", in: "—", out: "—", hours: "—", status: "ABSENT", tone: "destructive", info: "Unexcused absence" },
+                  ].map((row, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="w-12 text-center pl-5">
+                        <Checkbox />
+                      </TableCell>
+                      <TableCell className="font-medium text-sm">{row.date}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-muted-foreground">{row.day}</span>
+                          {row.event && <span className="text-[11px] text-[#8b5cf6] font-medium">· {row.event}</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{row.in}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{row.out}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{row.hours}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="secondary" 
+                            className={
+                              row.tone === "destructive" ? "bg-destructive/10 text-destructive hover:bg-destructive/10 border-transparent text-[10px] px-2 py-0.5 shadow-none font-bold" : 
+                              row.tone === "purple" ? "bg-[#8b5cf6]/10 text-[#8b5cf6] hover:bg-[#8b5cf6]/10 border-transparent text-[10px] px-2 py-0.5 shadow-none font-bold" : 
+                              "bg-secondary text-muted-foreground hover:bg-secondary border-transparent text-[10px] px-2 py-0.5 shadow-none font-bold"
+                            }
+                          >
+                            {row.status}
+                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="size-3.5 text-muted-foreground/60 cursor-help hover:text-foreground transition-colors" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{row.info}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground pr-5">—</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </section>
         </TabsContent>
 

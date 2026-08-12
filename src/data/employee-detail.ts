@@ -75,19 +75,19 @@ export function employeeBalances(id: string) {
 export function employeeCustody(id: string): CustodyItem[] {
   const h = hash(id);
   return [
-    { id: `CS-${h}`, item: "Dell Latitude 5540", serial: `DL-${1000 + (h % 900)}`, category: "Laptop", assigned: "2025-02-11", condition: "Good", status: "In custody" },
-    { id: `CS-${h + 1}`, item: "iPhone 14", serial: `IP-${2000 + (h % 700)}`, category: "Mobile", assigned: "2025-06-03", condition: "Good", status: "In custody" },
-    { id: `CS-${h + 2}`, item: "Access badge", serial: `BG-${3000 + (h % 500)}`, category: "Access", assigned: "2024-09-19", condition: "New", status: "In custody" },
-    { id: `CS-${h + 3}`, item: "Company SIM", serial: `SIM-${4000 + (h % 400)}`, category: "Telecom", assigned: "2024-01-08", condition: "Fair", status: "Returned" },
+    { id: `CS-${h}`, item: "Dell Latitude 5540", serial: `DL-${1000 + (h % 900)}`, category: "Laptop", assigned: "11-02-2025", condition: "Good", status: "In custody" },
+    { id: `CS-${h + 1}`, item: "iPhone 14", serial: `IP-${2000 + (h % 700)}`, category: "Mobile", assigned: "03-06-2025", condition: "Good", status: "In custody" },
+    { id: `CS-${h + 2}`, item: "Access badge", serial: `BG-${3000 + (h % 500)}`, category: "Access", assigned: "19-09-2024", condition: "New", status: "In custody" },
+    { id: `CS-${h + 3}`, item: "Company SIM", serial: `SIM-${4000 + (h % 400)}`, category: "Telecom", assigned: "08-01-2024", condition: "Fair", status: "Returned" },
   ];
 }
 
 export function employeeAdvances(id: string): AdvancePayment[] {
   const h = hash(id);
   return [
-    { id: `ADV-${h}`, amount: 10000, requested: "2026-06-02", installments: "4 × EGP 2,500", remaining: 5000, status: "Active" },
-    { id: `ADV-${h + 5}`, amount: 6000, requested: "2026-01-14", installments: "3 × EGP 2,000", remaining: 0, status: "Settled" },
-    { id: `ADV-${h + 9}`, amount: 4000, requested: "2026-08-01", installments: "2 × EGP 2,000", remaining: 4000, status: "Pending" },
+    { id: `ADV-${h}`, amount: 10000, requested: "02-06-2026", installments: "4 × EGP 2,500", remaining: 5000, status: "Active" },
+    { id: `ADV-${h + 5}`, amount: 6000, requested: "14-01-2026", installments: "3 × EGP 2,000", remaining: 0, status: "Settled" },
+    { id: `ADV-${h + 9}`, amount: 4000, requested: "01-08-2026", installments: "2 × EGP 2,000", remaining: 4000, status: "Pending" },
   ];
 }
 
@@ -97,9 +97,9 @@ export function employeeSite(employee: Employee) {
 
 export function employeeDocs(employee: Employee): EmployeeDoc[] {
   return [
-    { name: "Employment contract.pdf", category: "Contract", version: "v3", size: "482 KB", expires: employee.contractEnd || "2027-03-14", status: "Valid" },
-    { name: "National ID scan.jpg", category: "Identity", version: "v2", size: "1.2 MB", expires: employee.idExpiryDate || "2026-09-25", status: "Expiring" },
-    { name: "Medical insurance card.pdf", category: "Benefit", version: "v1", size: "310 KB", expires: "2027-01-01", status: "Valid" },
+    { name: "Employment contract.pdf", category: "Contract", version: "v3", size: "482 KB", expires: employee.contractEnd || "14-03-2027", status: "Valid" },
+    { name: "National ID scan.jpg", category: "Identity", version: "v2", size: "1.2 MB", expires: employee.idExpiryDate || "25-09-2026", status: "Expiring" },
+    { name: "Medical insurance card.pdf", category: "Benefit", version: "v1", size: "310 KB", expires: "01-01-2027", status: "Valid" },
     { name: "Bank account letter.pdf", category: "Finance", version: "v1", size: "96 KB", expires: "—", status: "Valid" },
   ];
 }

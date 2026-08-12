@@ -12,15 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AttendanceRouteImport } from './routes/attendance'
+import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as HrRouteImport } from './routes/hr'
-import { Route as LocationsRouteImport } from './routes/locations'
+import { Route as LeavesRouteImport } from './routes/leaves'
 import { Route as PayrollRouteImport } from './routes/payroll'
 import { Route as PerformanceRouteImport } from './routes/performance'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RecruitmentRouteImport } from './routes/recruitment'
 import { Route as SelfServiceRouteImport } from './routes/self-service'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as ConfigurationModuleRouteImport } from './routes/configuration_.$module'
 import { Route as EmployeesEmployeeIdRouteImport } from './routes/employees.$employeeId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -38,6 +41,11 @@ const AttendanceRoute = AttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfigurationRoute = ConfigurationRouteImport.update({
+  id: '/configuration',
+  path: '/configuration',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentsRoute = DocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
@@ -48,9 +56,9 @@ const HrRoute = HrRouteImport.update({
   path: '/hr',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocationsRoute = LocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
+const LeavesRoute = LeavesRouteImport.update({
+  id: '/leaves',
+  path: '/leaves',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PayrollRoute = PayrollRouteImport.update({
@@ -61,6 +69,11 @@ const PayrollRoute = PayrollRouteImport.update({
 const PerformanceRoute = PerformanceRouteImport.update({
   id: '/performance',
   path: '/performance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecruitmentRoute = RecruitmentRouteImport.update({
@@ -83,6 +96,11 @@ const UsersRoute = UsersRouteImport.update({
   path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfigurationModuleRoute = ConfigurationModuleRouteImport.update({
+  id: '/configuration_/$module',
+  path: '/configuration/$module',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmployeesEmployeeIdRoute = EmployeesEmployeeIdRouteImport.update({
   id: '/employees/$employeeId',
   path: '/employees/$employeeId',
@@ -93,30 +111,36 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/attendance': typeof AttendanceRoute
+  '/configuration': typeof ConfigurationRoute
   '/documents': typeof DocumentsRoute
   '/hr': typeof HrRoute
-  '/locations': typeof LocationsRoute
+  '/leaves': typeof LeavesRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
+  '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/configuration/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/attendance': typeof AttendanceRoute
+  '/configuration': typeof ConfigurationRoute
   '/documents': typeof DocumentsRoute
   '/hr': typeof HrRoute
-  '/locations': typeof LocationsRoute
+  '/leaves': typeof LeavesRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
+  '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/configuration/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
 }
 export interface FileRoutesById {
@@ -124,15 +148,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/attendance': typeof AttendanceRoute
+  '/configuration': typeof ConfigurationRoute
   '/documents': typeof DocumentsRoute
   '/hr': typeof HrRoute
-  '/locations': typeof LocationsRoute
+  '/leaves': typeof LeavesRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
+  '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/configuration_/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
 }
 export interface FileRouteTypes {
@@ -141,45 +168,54 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/attendance'
+    | '/configuration'
     | '/documents'
     | '/hr'
-    | '/locations'
+    | '/leaves'
     | '/payroll'
     | '/performance'
+    | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
     | '/users'
+    | '/configuration/$module'
     | '/employees/$employeeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
     | '/attendance'
+    | '/configuration'
     | '/documents'
     | '/hr'
-    | '/locations'
+    | '/leaves'
     | '/payroll'
     | '/performance'
+    | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
     | '/users'
+    | '/configuration/$module'
     | '/employees/$employeeId'
   id:
     | '__root__'
     | '/'
     | '/analytics'
     | '/attendance'
+    | '/configuration'
     | '/documents'
     | '/hr'
-    | '/locations'
+    | '/leaves'
     | '/payroll'
     | '/performance'
+    | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
     | '/users'
+    | '/configuration_/$module'
     | '/employees/$employeeId'
   fileRoutesById: FileRoutesById
 }
@@ -187,15 +223,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AttendanceRoute: typeof AttendanceRoute
+  ConfigurationRoute: typeof ConfigurationRoute
   DocumentsRoute: typeof DocumentsRoute
   HrRoute: typeof HrRoute
-  LocationsRoute: typeof LocationsRoute
+  LeavesRoute: typeof LeavesRoute
   PayrollRoute: typeof PayrollRoute
   PerformanceRoute: typeof PerformanceRoute
+  ProfileRoute: typeof ProfileRoute
   RecruitmentRoute: typeof RecruitmentRoute
   SelfServiceRoute: typeof SelfServiceRoute
   SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
+  ConfigurationModuleRoute: typeof ConfigurationModuleRoute
   EmployeesEmployeeIdRoute: typeof EmployeesEmployeeIdRoute
 }
 
@@ -222,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttendanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/configuration': {
+      id: '/configuration'
+      path: '/configuration'
+      fullPath: '/configuration'
+      preLoaderRoute: typeof ConfigurationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documents': {
       id: '/documents'
       path: '/documents'
@@ -236,11 +282,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HrRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/locations': {
-      id: '/locations'
-      path: '/locations'
-      fullPath: '/locations'
-      preLoaderRoute: typeof LocationsRouteImport
+    '/leaves': {
+      id: '/leaves'
+      path: '/leaves'
+      fullPath: '/leaves'
+      preLoaderRoute: typeof LeavesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payroll': {
@@ -255,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/performance'
       fullPath: '/performance'
       preLoaderRoute: typeof PerformanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recruitment': {
@@ -285,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/configuration_/$module': {
+      id: '/configuration_/$module'
+      path: '/configuration/$module'
+      fullPath: '/configuration/$module'
+      preLoaderRoute: typeof ConfigurationModuleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/employees/$employeeId': {
       id: '/employees/$employeeId'
       path: '/employees/$employeeId'
@@ -299,17 +359,30 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AttendanceRoute: AttendanceRoute,
+  ConfigurationRoute: ConfigurationRoute,
   DocumentsRoute: DocumentsRoute,
   HrRoute: HrRoute,
-  LocationsRoute: LocationsRoute,
+  LeavesRoute: LeavesRoute,
   PayrollRoute: PayrollRoute,
   PerformanceRoute: PerformanceRoute,
+  ProfileRoute: ProfileRoute,
   RecruitmentRoute: RecruitmentRoute,
   SelfServiceRoute: SelfServiceRoute,
   SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
+  ConfigurationModuleRoute: ConfigurationModuleRoute,
   EmployeesEmployeeIdRoute: EmployeesEmployeeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

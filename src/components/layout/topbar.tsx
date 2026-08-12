@@ -1,7 +1,7 @@
 import { Bell, Globe, LogOut, MessageSquare, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -19,7 +19,7 @@ export function Topbar() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-3 backdrop-blur-md sm:px-5">
       <SidebarTrigger className="shrink-0" aria-label="Toggle navigation" />
 
-      <div className="relative min-w-0 flex-1 max-w-xl">
+      <div className="relative min-w-0 flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search employees, requests, documents…"
@@ -51,6 +51,7 @@ export function Topbar() {
 
         <div className="ml-1 flex items-center gap-2 rounded-xl border border-border px-2 py-1.5">
           <Avatar className="size-7">
+            <AvatarImage src="/favicon.png" className="bg-white p-0.5 object-contain" />
             <AvatarFallback className="bg-brand text-brand-foreground text-[11px]">
               {user?.initials ?? "SL"}
             </AvatarFallback>

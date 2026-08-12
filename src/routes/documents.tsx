@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSelection } from "@/hooks/use-selection";
 import { documentsList } from "@/data/modules";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/documents")({
   head: () => ({
@@ -38,7 +39,12 @@ const docStatus: Record<string, string> = {
 const categories = ["All", "Contract", "Identity", "Certificate", "Licence", "Policy"];
 
 function DocumentsPage() {
-  const [rows, setRows] = useState(documentsList);
+  const { user } = useAuth();
+  const isEmployee = user?.role === "employee";
+
+  const [rows, setRows] = useState(() =>
+    isEmployee ? documentsList.filter((d) => d.employee === user?.name || d.employee === "Company") : documentsList
+  );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
@@ -79,22 +85,26 @@ function DocumentsPage() {
     <div className="space-y-5">
       <PageHeader
         section="Documents"
-        title="Document vault"
-        description="14,802 files · 23 documents expiring within 30 days."
+        title={isEmployee ? "My Documents" : "Document vault"}
+        description={isEmployee ? "View your personal and employment related files." : "14,802 files · 23 documents expiring within 30 days."}
         actions={
-          <Button variant="secondary" onClick={() => toast.info("Drop files here to upload — OCR runs automatically.")}>
-            <Upload className="size-4" />
-            <span>Upload document</span>
-          </Button>
+          !isEmployee && (
+            <Button variant="secondary" onClick={() => toast.info("Drop files here to upload — OCR runs automatically.")}>
+              <Upload className="size-4" />
+              <span>Upload document</span>
+            </Button>
+          )
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total files" value="14,802" delta="+312 this month" icon={FileText} tone="brand" />
-        <StatCard label="Expiring in 30 days" value="23" delta="6 critical" trend="down" icon={AlertTriangle} tone="warning" />
-        <StatCard label="OCR processed" value="11,940" delta="81% coverage" icon={Scan} tone="info" />
-        <StatCard label="Storage used" value="248 GB" delta="of 1 TB" icon={HardDrive} tone="success" />
-      </div>
+      {!isEmployee && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="Total files" value="14,802" delta="+312 this month" icon={FileText} tone="brand" />
+          <StatCard label="Expiring in 30 days" value="23" delta="6 critical" trend="down" icon={AlertTriangle} tone="warning" />
+          <StatCard label="OCR processed" value="11,940" delta="81% coverage" icon={Scan} tone="info" />
+          <StatCard label="Storage used" value="248 GB" delta="of 1 TB" icon={HardDrive} tone="success" />
+        </div>
+      )}
 
       <section className="surface-card overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
@@ -124,10 +134,12 @@ function DocumentsPage() {
         </div>
 
         <BulkBar count={selection.count} noun="document" onClear={selection.clear}>
-          <Button size="sm" variant="outline" className="rounded-lg" onClick={bulkRenew}>
-            <RefreshCw className="size-4" />
-            <span>Renew / new version</span>
-          </Button>
+          {!isEmployee && (
+            <Button size="sm" variant="outline" className="rounded-lg" onClick={bulkRenew}>
+              <RefreshCw className="size-4" />
+              <span>Renew / new version</span>
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -137,10 +149,12 @@ function DocumentsPage() {
             <Download className="size-4" />
             <span>Download</span>
           </Button>
-          <Button size="sm" variant="destructive" className="rounded-lg" onClick={bulkDelete}>
-            <Trash2 className="size-4" />
-            <span>Archive</span>
-          </Button>
+          {!isEmployee && (
+            <Button size="sm" variant="destructive" className="rounded-lg" onClick={bulkDelete}>
+              <Trash2 className="size-4" />
+              <span>Archive</span>
+            </Button>
+          )}
         </BulkBar>
 
         <div className="overflow-x-auto">
@@ -155,7 +169,7 @@ function DocumentsPage() {
                   />
                 </TableHead>
                 <TableHead>Document</TableHead>
-                <TableHead>Owner</TableHead>
+                {!isEmployee && <TableHead>Owner</TableHead>}
                 <TableHead>Category</TableHead>
                 <TableHead>Version</TableHead>
                 <TableHead>Size</TableHead>
@@ -188,7 +202,7 @@ function DocumentsPage() {
                       <span className="text-sm font-medium">{d.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm">{d.employee}</TableCell>
+                  {!isEmployee && <TableCell className="text-sm">{d.employee}</TableCell>}
                   <TableCell className="text-sm text-muted-foreground">{d.category}</TableCell>
                   <TableCell className="text-sm tabular-nums">{d.version}</TableCell>
                   <TableCell className="text-sm tabular-nums text-muted-foreground">{d.size}</TableCell>

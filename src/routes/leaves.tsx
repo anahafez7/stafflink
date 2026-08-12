@@ -55,19 +55,19 @@ import {
   type LeaveRequest,
 } from "@/data/modules";
 
-export const Route = createFileRoute("/self-service")({
+export const Route = createFileRoute("/leaves")({
   head: () => ({
     meta: [
-      { title: "Self Service — StaffLink" },
+      { title: "Leaves — StaffLink" },
       {
         name: "description",
-        content: "Employee self service: leave and loan requests, payslips, announcements, tasks and profile updates.",
+        content: "Employee leaves requests and history.",
       },
-      { property: "og:title", content: "Self Service — StaffLink" },
-      { property: "og:description", content: "Requests, payslips, announcements and profile updates." },
+      { property: "og:title", content: "Leaves — StaffLink" },
+      { property: "og:description", content: "Leave requests and history." },
     ],
   }),
-  component: SelfServicePage,
+  component: LeavesPage,
 });
 
 const statusStyles: Record<string, string> = {
@@ -102,7 +102,7 @@ const initialDevices = [
   { name: "iPad Air · Safari", location: "Giza, EG", lastActive: "3 days ago", icon: Tablet, current: false },
 ];
 
-function SelfServicePage() {
+function LeavesPage() {
   const { user } = useAuth();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
@@ -281,9 +281,9 @@ function SelfServicePage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        section="Self Service"
-        title="Employee self service"
-        description="Everything an employee needs, in three clicks or fewer."
+        section="Leaves"
+        title="Leave management"
+        description="View your leave balances and request time off."
         actions={
           <Button variant="secondary" onClick={() => openLeaveForm()}>
             <Plus className="size-4" />
@@ -292,96 +292,24 @@ function SelfServicePage() {
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
-        <section id="attendance" className="surface-card scroll-mt-20 p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-semibold">Check in / out</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Cairo HQ · Web punch</p>
-            </div>
-            <span className="text-2xl font-semibold tabular-nums">{now}</span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-border p-3">
-              <p className="text-xs text-muted-foreground">Checked in</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">{punchIn ?? "—"}</p>
-            </div>
-            <div className="rounded-xl border border-border p-3">
-              <p className="text-xs text-muted-foreground">Checked out</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">{punchOut ?? "—"}</p>
-            </div>
-          </div>
-
-          <Button
-            className="mt-4 w-full"
-            variant={punchIn && !punchOut ? "destructive" : "default"}
-            disabled={Boolean(punchIn && punchOut)}
-            onClick={handlePunch}
-          >
-            {punchIn && !punchOut ? <LogOut className="size-4" /> : <LogIn className="size-4" />}
-            <span>{!punchIn ? "Check in" : !punchOut ? "Check out" : "Shift completed"}</span>
-          </Button>
-
-          <ul className="mt-4 divide-y divide-border">
-            {myPunchLog.map((d) => (
-              <li key={d.day} className="flex items-center gap-3 py-2 text-sm">
-                <span className="w-10 shrink-0 text-muted-foreground">{d.day}</span>
-                <span className="tabular-nums">
-                  {d.in} – {d.out}
+      <section id="leaves" className="surface-card p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold">Leave balances</h2>
+        </div>
+        <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {balances.map((b) => (
+            <li key={b.type} className="rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{b.type}</span>
+                <span className="tabular-nums text-muted-foreground">
+                  {b.total - b.used} of {b.total} days left
                 </span>
-                <span className="ml-auto tabular-nums text-muted-foreground">{d.hours}</span>
-                <Badge
-                  variant="outline"
-                  className={
-                    d.state === "Late"
-                      ? "border-warning/40 text-warning"
-                      : d.state === "Overtime"
-                        ? "border-brand/40 text-brand"
-                        : "border-success/40 text-success"
-                  }
-                >
-                  {d.state}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportCsv}>
-              <FileSpreadsheet className="size-4" />
-              <span>Export CSV</span>
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={exportPdf}>
-              <Download className="size-4" />
-              <span>Export PDF</span>
-            </Button>
-          </div>
-        </section>
-
-
-      </div>
-
-      <AttendanceCalendar records={attendanceHistory} />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {quickActions.map((a) => (
-          <button
-            key={a.label}
-            type="button"
-            onClick={() => toast.success(`${a.label} form opened`)}
-            className="surface-card flex items-center gap-3 p-4 text-left transition-shadow hover:shadow-[var(--shadow-lift)]"
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-              <a.icon className="size-5" />
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-medium">{a.label}</span>
-              <span className="block text-xs text-muted-foreground">Submit in seconds</span>
-            </span>
-          </button>
-        ))}
-      </div>
+              </div>
+              <Progress value={(b.used / b.total) * 100} className="mt-3 h-1.5" />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="grid gap-4">
         <section className="surface-card overflow-hidden">
@@ -418,81 +346,6 @@ function SelfServicePage() {
               <span className="text-xs text-muted-foreground">Only managers can approve or reject requests.</span>
             )}
           </BulkBar>
-
-          {/* Mobile: swipe-friendly cards with large actions */}
-          <ul className="divide-y divide-border md:hidden">
-            {filtered.length === 0 ? (
-              <li className="py-10 text-center text-sm text-muted-foreground">No requests match this search.</li>
-            ) : null}
-            {filtered.map((r) => (
-              <li key={r.id} className="space-y-3 p-4">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    aria-label={`Select ${r.id}`}
-                    className="mt-1 size-5"
-                    checked={selection.isSelected(r.id)}
-                    onCheckedChange={() => selection.toggle(r.id)}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{r.type}</p>
-                    <p className="truncate text-xs text-muted-foreground tabular-nums">
-                      {r.id} · submitted {r.submitted}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className={statusStyles[r.status]}>
-                    {r.status}
-                  </Badge>
-                </div>
-                <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
-                    <p className="text-[11px] text-muted-foreground">Period</p>
-                    <p className="mt-1 text-sm font-medium tabular-nums">{r.period}</p>
-                  </div>
-                  <div className="min-w-[6rem] shrink-0 snap-start rounded-xl border border-border p-3">
-                    <p className="text-[11px] text-muted-foreground">Days</p>
-                    <p className="mt-1 text-sm font-medium tabular-nums">{r.days || "—"}</p>
-                  </div>
-                  <div className="min-w-[9rem] shrink-0 snap-start rounded-xl border border-border p-3">
-                    <p className="text-[11px] text-muted-foreground">Balance</p>
-                    <p className="mt-1 text-sm font-medium tabular-nums">
-                      {r.status === "Rejected" ? `${r.balanceBefore} (unchanged)` : `${r.balanceBefore} → ${r.balanceAfter}`}
-                    </p>
-                  </div>
-                  <div className="min-w-[14rem] shrink-0 snap-start rounded-xl border border-border p-3">
-                    <p className="text-[11px] text-muted-foreground">Reason</p>
-                    <p className="mt-1 text-sm">{r.reason}</p>
-                  </div>
-                </div>
-                {canApprove && r.status === "Pending" ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      className="h-11 rounded-xl"
-                      onClick={() => {
-                        applyDecision([r.id], "Approved");
-                        toast.success(`${r.id} approved`);
-                      }}
-                    >
-                      <Check className="size-5" />
-                      <span>Approve</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-11 rounded-xl"
-                      onClick={() => {
-                        applyDecision([r.id], "Rejected");
-                        toast.success(`${r.id} rejected`);
-                      }}
-                    >
-                      <X className="size-5" />
-                      <span>Reject</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">{r.decision}</p>
-                )}
-              </li>
-            ))}
-          </ul>
 
           <div className="hidden overflow-x-auto md:block">
             <Table>
@@ -595,30 +448,6 @@ function SelfServicePage() {
             </Table>
           </div>
         </section>
-
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <section className="surface-card p-5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <Megaphone className="size-4 text-primary" />
-            Announcements
-          </h2>
-          <ul className="mt-3 space-y-3">
-            {announcements.map((a) => (
-              <li key={a.title} className="rounded-xl border border-border p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="min-w-0 text-sm font-medium">{a.title}</p>
-                  <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-
-
       </div>
 
       <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>

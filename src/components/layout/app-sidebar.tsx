@@ -12,6 +12,9 @@ import {
   Settings,
   ShieldCheck,
   MapPin,
+  Settings2,
+  User,
+  CalendarDays,
 } from "lucide-react";
 
 import {
@@ -27,7 +30,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type ModuleKey } from "@/lib/auth";
-import logoAsset from "@/assets/stafflink-logo.png.asset.json";
 
 const workspace = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
@@ -37,14 +39,16 @@ const workspace = [
   { title: "Recruitment", url: "/recruitment", icon: UserSearch, module: "recruitment" },
   { title: "Performance", url: "/performance", icon: Target, module: "performance" },
   { title: "Documents", url: "/documents", icon: FolderOpen, module: "documents" },
-  { title: "Self Service", url: "/self-service", icon: UserCog, module: "self-service" },
+  { title: "Attendance", url: "/self-service", icon: UserCog, module: "self-service" },
+  { title: "Leaves", url: "/leaves", icon: CalendarDays, module: "self-service" },
+  { title: "My Profile", url: "/profile", icon: User, module: "self-service" },
   { title: "Analytics", url: "/analytics", icon: BarChart3, module: "analytics" },
 ] as const;
 
 const administration = [
   { title: "Settings", url: "/settings", icon: Settings, module: "settings" },
+  { title: "Configuration", url: "/configuration", icon: Settings2, module: "settings" },
   { title: "Users & Permissions", url: "/users", icon: ShieldCheck, module: "users" },
-  { title: "Locations", url: "/locations", icon: MapPin, module: "locations" },
 ] as const;
 
 export function AppSidebar() {
@@ -56,13 +60,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-sidebar-border">
       <SidebarHeader className="px-3 py-4">
         <Link to="/" className="flex items-center gap-3">
-          <img
-            src="/favicon.png"
-            alt="StaffLink logo"
-            className="size-9 shrink-0 rounded-xl bg-white object-contain p-0.5"
-          />
           <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <img src={logoAsset.url} alt="StaffLink" className="h-6 w-auto max-w-[9rem] object-contain object-left" />
+            <img src="/logo.png" alt="StaffLink" className="w-full h-auto object-contain object-left bg-white px-2 py-1 rounded-md" />
             <span className="mt-1 block truncate text-[11px] text-sidebar-foreground/60">
               Enterprise HRMS
             </span>
@@ -100,11 +99,11 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:hidden">
-        <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/40 p-3">
-          <p className="text-xs font-medium text-sidebar-foreground">Payroll · June</p>
-          <p className="mt-1 text-[11px] text-sidebar-foreground/60">
-            Closing in 3 days · 1,244 employees
-          </p>
+        <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/40 p-3 text-center">
+          <p className="text-xs text-sidebar-foreground/70 mb-1">Developer</p>
+          <a href="https://odooteams.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-sidebar-foreground hover:underline">
+            Mr. Hafez Rahim
+          </a>
         </div>
       </SidebarFooter>
     </Sidebar>

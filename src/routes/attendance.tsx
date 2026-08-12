@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Fingerprint, MapPin, UserCheck, UserX } from "lucide-react";
+import { Clock, Fingerprint, MapPin, UserCheck, UserX, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/layout/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { attendanceWeek } from "@/data/hrms";
 
 export const Route = createFileRoute("/attendance")({
@@ -27,11 +28,11 @@ export const Route = createFileRoute("/attendance")({
 });
 
 const live = [
-  { name: "Yara Mansour", time: "08:42", method: "Face ID", site: "Cairo HQ", state: "On time" },
-  { name: "Omar Khalil", time: "09:07", method: "Fingerprint", site: "Cairo HQ", state: "Late" },
-  { name: "Karim Fathy", time: "07:55", method: "GPS", site: "Alexandria Yard", state: "On time" },
-  { name: "Hassan Rageh", time: "09:31", method: "QR", site: "Riyadh DC", state: "Late" },
-  { name: "Ziad Nour", time: "08:12", method: "Web", site: "Remote", state: "On time" },
+  { name: "Yara Mansour", checkIn: "08:42", checkOut: "17:05", hours: "8h 23m", method: "Face ID", site: "Cairo HQ", state: "On time" },
+  { name: "Omar Khalil", checkIn: "09:07", checkOut: "17:30", hours: "8h 23m", method: "Fingerprint", site: "Cairo HQ", state: "Late" },
+  { name: "Karim Fathy", checkIn: "07:55", checkOut: "16:00", hours: "8h 05m", method: "GPS", site: "Alexandria Yard", state: "On time" },
+  { name: "Hassan Rageh", checkIn: "09:31", checkOut: "18:15", hours: "8h 44m", method: "QR", site: "Riyadh DC", state: "Late" },
+  { name: "Ziad Nour", checkIn: "08:12", checkOut: "16:30", hours: "8h 18m", method: "Web", site: "Remote", state: "On time" },
 ];
 
 function AttendancePage() {
@@ -53,28 +54,56 @@ function AttendancePage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="surface-card p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold">Live punch feed</h2>
-          <ul className="mt-3 divide-y divide-border">
-            {live.map((p) => (
-              <li key={p.name} className="flex items-center gap-3 py-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-xs font-semibold">
-                  {p.time}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{p.name}</p>
-                  <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    <MapPin className="size-3" /> {p.site} · {p.method}
-                  </p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={p.state === "Late" ? "border-warning/40 text-warning" : "border-success/40 text-success"}
-                >
-                  {p.state}
-                </Badge>
-              </li>
-            ))}
-          </ul>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Live punch feed</h2>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" className="h-7 px-3 text-xs">Today</Button>
+              <div className="flex items-center rounded-md border border-border bg-background p-0.5">
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm text-muted-foreground"><ChevronLeft className="size-3.5" /></Button>
+                <span className="text-xs font-medium px-2 min-w-[90px] whitespace-nowrap text-center">08-07-2026</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm text-muted-foreground"><ChevronRight className="size-3.5" /></Button>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto mt-4 rounded-xl border border-border">
+            <Table>
+              <TableHeader className="bg-secondary/40">
+                <TableRow>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Employee</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Check in</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Check out</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Hours</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Location</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Method</TableHead>
+                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {live.map((p) => (
+                  <TableRow key={p.name}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-medium">{p.checkIn}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">{p.checkOut}</TableCell>
+                    <TableCell className="font-medium">{p.hours}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="size-3" /> {p.site}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{p.method}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={p.state === "Late" ? "border-warning/40 text-warning" : "border-success/40 text-success"}
+                      >
+                        {p.state}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </section>
 
         <section className="surface-card p-5">

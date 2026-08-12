@@ -21,11 +21,13 @@ export const ratingSplit = [
 ];
 
 export const documentsList = [
-  { name: "Employment contract.pdf", employee: "Yara Mansour", category: "Contract", version: "v3", size: "482 KB", expires: "2027-03-14", status: "Valid" },
-  { name: "Passport scan.jpg", employee: "Hassan Rageh", category: "Identity", version: "v1", size: "1.8 MB", expires: "2026-08-25", status: "Expiring" },
-  { name: "Work visa.pdf", employee: "Karim Fathy", category: "Identity", version: "v2", size: "740 KB", expires: "2026-08-12", status: "Expiring" },
-  { name: "ISO 27001 certificate.pdf", employee: "Company", category: "Certificate", version: "v1", size: "312 KB", expires: "2028-01-30", status: "Valid" },
-  { name: "Driving licence.png", employee: "Omar Khalil", category: "Licence", version: "v4", size: "902 KB", expires: "2026-07-19", status: "Expired" },
+  { name: "Employment contract.pdf", employee: "Lina Habib", category: "Contract", version: "v2", size: "320 KB", expires: "01-01-2028", status: "Valid" },
+  { name: "ID Card scan.jpg", employee: "Lina Habib", category: "Identity", version: "v1", size: "1.2 MB", expires: "15-06-2027", status: "Valid" },
+  { name: "Employment contract.pdf", employee: "Yara Mansour", category: "Contract", version: "v3", size: "482 KB", expires: "14-03-2027", status: "Valid" },
+  { name: "Passport scan.jpg", employee: "Hassan Rageh", category: "Identity", version: "v1", size: "1.8 MB", expires: "25-08-2026", status: "Expiring" },
+  { name: "Work visa.pdf", employee: "Karim Fathy", category: "Identity", version: "v2", size: "740 KB", expires: "12-08-2026", status: "Expiring" },
+  { name: "ISO 27001 certificate.pdf", employee: "Company", category: "Certificate", version: "v1", size: "312 KB", expires: "30-01-2028", status: "Valid" },
+  { name: "Driving licence.png", employee: "Omar Khalil", category: "Licence", version: "v4", size: "902 KB", expires: "19-07-2026", status: "Expired" },
   { name: "Remote work policy.docx", employee: "Company", category: "Policy", version: "v6", size: "128 KB", expires: "—", status: "Valid" },
 ];
 

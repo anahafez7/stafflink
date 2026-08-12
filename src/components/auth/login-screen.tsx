@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { demoAccounts, roleLabels, useAuth } from "@/lib/auth";
-import logoAsset from "@/assets/stafflink-logo.png.asset.json";
 
 export function LoginScreen() {
   const { signIn } = useAuth();
@@ -23,11 +22,11 @@ export function LoginScreen() {
     <div className="grid min-h-dvh w-full lg:grid-cols-2">
       <div className="gradient-header hidden flex-col justify-between p-10 text-brand-foreground lg:flex">
         <div className="rounded-2xl bg-brand-foreground/95 p-5">
-          <img src={logoAsset.url} alt="StaffLink logo" className="h-24 w-auto object-contain" />
+          <img src="/logo.png" alt="StaffLink logo" className="w-full h-auto max-h-48 object-contain" />
         </div>
         <div className="max-w-md space-y-4">
           <h2 className="text-3xl font-semibold leading-tight">
-            One workspace for people, payroll and performance.
+            One workspace for Staff, payroll and performance.
           </h2>
           <p className="text-sm text-brand-foreground/75">
             Role-based access keeps every team focused on the modules they own — from the HR
@@ -41,7 +40,7 @@ export function LoginScreen() {
         <div className="w-full max-w-sm space-y-6">
           <div className="space-y-3">
             <img
-              src={logoAsset.url}
+              src="/logo.png"
               alt="StaffLink logo"
               className="h-20 w-auto object-contain object-left sm:h-24"
             />

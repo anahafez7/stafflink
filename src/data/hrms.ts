@@ -84,14 +84,14 @@ export const employeeTags = [
 ] as const;
 
 export const employees: Employee[] = [
-  { id: "SL-1042", name: "Yara Mansour", role: "HR Business Partner", department: "Human Resources", branch: "Cairo HQ", type: "Full-time", status: "Active", joined: "2021-03-14", email: "yara@stafflink.io", tags: ["Manager", "High performer"] },
-  { id: "SL-1058", name: "Omar Khalil", role: "Senior Accountant", department: "Finance", branch: "Cairo HQ", type: "Full-time", status: "Active", joined: "2019-11-02", email: "omar@stafflink.io", tags: ["High performer"] },
-  { id: "SL-1103", name: "Leen Al-Hariri", role: "Recruitment Specialist", department: "Human Resources", branch: "Dubai", type: "Full-time", status: "On Leave", joined: "2022-06-20", email: "leen@stafflink.io", tags: ["Visa holder"] },
-  { id: "SL-1120", name: "Karim Fathy", role: "Field Technician", department: "Operations", branch: "Alexandria", type: "Contract", status: "Active", joined: "2023-01-09", email: "karim@stafflink.io", tags: ["Shift worker", "Visa holder"] },
-  { id: "SL-1166", name: "Nadia Sabry", role: "Product Designer", department: "Technology", branch: "Remote", type: "Full-time", status: "Probation", joined: "2025-09-01", email: "nadia@stafflink.io", tags: ["New joiner", "Remote"] },
-  { id: "SL-1189", name: "Hassan Rageh", role: "Warehouse Supervisor", department: "Logistics", branch: "Riyadh", type: "Full-time", status: "Active", joined: "2018-04-17", email: "hassan@stafflink.io", tags: ["Manager", "Shift worker"] },
-  { id: "SL-1204", name: "Mai Gaber", role: "Payroll Officer", department: "Finance", branch: "Cairo HQ", type: "Part-time", status: "Active", joined: "2024-02-11", email: "mai@stafflink.io", tags: [] },
-  { id: "SL-1231", name: "Ziad Nour", role: "Software Engineer", department: "Technology", branch: "Remote", type: "Full-time", status: "Active", joined: "2022-08-29", email: "ziad@stafflink.io", tags: ["Remote", "High performer"] },
+  { id: "SL-1042", name: "Yara Mansour", role: "HR Business Partner", department: "Human Resources", branch: "Cairo HQ", type: "Full-time", status: "Active", joined: "14-03-2021", email: "yara@stafflink.io", tags: ["Manager", "High performer"] },
+  { id: "SL-1058", name: "Omar Khalil", role: "Senior Accountant", department: "Finance", branch: "Cairo HQ", type: "Full-time", status: "Active", joined: "02-11-2019", email: "omar@stafflink.io", tags: ["High performer"] },
+  { id: "SL-1103", name: "Leen Al-Hariri", role: "Recruitment Specialist", department: "Human Resources", branch: "Dubai", type: "Full-time", status: "On Leave", joined: "20-06-2022", email: "leen@stafflink.io", tags: ["Visa holder"] },
+  { id: "SL-1120", name: "Karim Fathy", role: "Field Technician", department: "Operations", branch: "Alexandria", type: "Contract", status: "Active", joined: "09-01-2023", email: "karim@stafflink.io", tags: ["Shift worker", "Visa holder"] },
+  { id: "SL-1166", name: "Nadia Sabry", role: "Product Designer", department: "Technology", branch: "Remote", type: "Full-time", status: "Probation", joined: "01-09-2025", email: "nadia@stafflink.io", tags: ["New joiner", "Remote"] },
+  { id: "SL-1189", name: "Hassan Rageh", role: "Warehouse Supervisor", department: "Logistics", branch: "Riyadh", type: "Full-time", status: "Active", joined: "17-04-2018", email: "hassan@stafflink.io", tags: ["Manager", "Shift worker"] },
+  { id: "SL-1204", name: "Mai Gaber", role: "Payroll Officer", department: "Finance", branch: "Cairo HQ", type: "Part-time", status: "Active", joined: "11-02-2024", email: "mai@stafflink.io", tags: [] },
+  { id: "SL-1231", name: "Ziad Nour", role: "Software Engineer", department: "Technology", branch: "Remote", type: "Full-time", status: "Active", joined: "29-08-2022", email: "ziad@stafflink.io", tags: ["Remote", "High performer"] },
 ];
 
 export const attendanceWeek = [

@@ -11,6 +11,10 @@ import {
   Plus,
   UploadCloud,
   CheckCheck,
+  RefreshCcw,
+  Zap,
+  ArrowRight,
+  Bell,
 } from "lucide-react";
 import {
   Area,
@@ -284,6 +288,125 @@ function Dashboard() {
             ))}
           </ol>
         </section>
+      </div>
+
+      {/* Added bottom sections */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Notifications Center */}
+        <section className="surface-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Bell className="size-5 text-brand" />
+                  <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-surface bg-destructive" />
+                </div>
+                <h2 className="text-base font-semibold">Notifications Center</h2>
+                <Badge variant="secondary" className="bg-secondary text-muted-foreground font-normal rounded-md px-1.5 py-0.5 text-[10px]">
+                  <Zap className="mr-1 size-3" /> Live
+                </Badge>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                0 pending leaves • 0 late • 263 absent today
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="h-8 rounded-full text-xs font-normal">
+              <RefreshCcw className="mr-2 size-3" /> Refresh
+            </Button>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge className="bg-brand text-brand-foreground hover:bg-brand/90 px-3 py-1.5 text-xs rounded-full">
+              All <span className="ml-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">1</span>
+            </Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Pending leaves <span className="ml-1.5 text-muted-foreground">0</span></Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Late <span className="ml-1.5 text-muted-foreground">0</span></Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Absent <span className="ml-1.5 text-foreground font-medium">263</span></Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Check-ins <span className="ml-1.5 text-muted-foreground">0</span></Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Check-outs <span className="ml-1.5 text-muted-foreground">0</span></Badge>
+          </div>
+
+          <div className="mt-6 cursor-pointer rounded-2xl border border-border p-4 flex items-center justify-between hover:bg-accent transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <UserX className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-[15px] font-medium text-foreground">263 employees not checked in</h3>
+                <p className="mt-0.5 text-sm text-muted-foreground">As of 00:01</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <span className="text-xs text-muted-foreground">just now</span>
+              <ArrowRight className="size-4 text-muted-foreground" />
+            </div>
+          </div>
+        </section>
+
+        {/* Right side columns */}
+        <div className="space-y-4 lg:col-span-2">
+          {/* Live Activity */}
+          <section className="surface-card p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold">Live Activity</h2>
+              <Button variant="link" className="h-auto p-0 text-sm text-brand font-medium">View all</Button>
+            </div>
+            
+            <div className="my-8 text-center">
+              <p className="text-sm text-muted-foreground">No check-ins yet today.</p>
+            </div>
+
+            <div className="rounded-2xl bg-secondary/40 p-5 mt-4">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[15px] font-medium">Today's distribution</span>
+                <span className="text-sm text-muted-foreground">263 total</span>
+              </div>
+              <div className="h-3.5 w-full rounded-full overflow-hidden flex">
+                <div className="h-full bg-success" style={{ width: '0%' }} />
+                <div className="h-full bg-warning" style={{ width: '0%' }} />
+                <div className="h-full bg-blue-500" style={{ width: '0.4%' }} />
+                <div className="h-full bg-destructive" style={{ width: '99.6%' }} />
+              </div>
+              <div className="mt-4 flex items-center gap-5 text-[13px] text-muted-foreground">
+                <div className="flex items-center gap-2"><span className="size-2 rounded-full bg-success"></span> 0 Present</div>
+                <div className="flex items-center gap-2"><span className="size-2 rounded-full bg-warning"></span> 0 Late</div>
+                <div className="flex items-center gap-2"><span className="size-2 rounded-full bg-blue-500"></span> 1 On Leave</div>
+                <div className="flex items-center gap-2"><span className="size-2 rounded-full bg-destructive"></span> 263 Absent</div>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Pending Leaves */}
+            <section className="surface-card p-5 flex flex-col">
+              <h2 className="text-base font-semibold">Pending Leaves</h2>
+              <div className="flex-1 flex items-center justify-center py-10">
+                <p className="text-sm text-muted-foreground">No pending requests.</p>
+              </div>
+            </section>
+
+            {/* Upcoming Holidays */}
+            <section className="surface-card p-5">
+              <h2 className="text-base font-semibold">Upcoming Holidays</h2>
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center justify-between rounded-xl bg-secondary/40 p-4">
+                  <div>
+                    <p className="text-[15px] font-medium">Prophet Muhammad's Birthday</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Public</p>
+                  </div>
+                  <p className="text-[15px] font-medium tracking-tight">26-08-2026</p>
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-secondary/40 p-4">
+                  <div>
+                    <p className="text-[15px] font-medium">Armed Forces Day</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Public</p>
+                  </div>
+                  <p className="text-[15px] font-medium tracking-tight">06-10-2026</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ const allModules: ModuleKey[] = [
 ];
 
 export const rolePermissions: Record<Role, ModuleKey[]> = {
-  admin: allModules,
+  admin: allModules.filter(m => m !== "self-service"),
   hr_manager: [
     "dashboard",
     "hr",
@@ -56,11 +56,10 @@ export const rolePermissions: Record<Role, ModuleKey[]> = {
     "recruitment",
     "performance",
     "documents",
-    "self-service",
     "analytics",
     "locations",
   ],
-  manager: ["dashboard", "attendance", "performance", "self-service", "analytics"],
+  manager: ["dashboard", "attendance", "performance", "analytics"],
   employee: ["self-service", "documents"],
 };
 
@@ -112,6 +111,7 @@ export const demoAccounts: DemoAccount[] = [
 export const pathToModule = (pathname: string): ModuleKey => {
   const segment = pathname.split("/").filter(Boolean)[0];
   if (!segment) return "dashboard";
+  if (segment === "profile" || segment === "leaves") return "self-service";
   return (allModules.includes(segment as ModuleKey) ? segment : "dashboard") as ModuleKey;
 };
 
