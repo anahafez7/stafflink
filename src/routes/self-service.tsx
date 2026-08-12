@@ -47,6 +47,7 @@ import { useNotifications } from "@/lib/notifications";
 import {
   announcements,
   attendanceHistory,
+  documentsList,
   leaveBalances,
   leaveHistory,
   myPunchLog,
