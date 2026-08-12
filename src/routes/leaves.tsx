@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
-  Clock,
   Download,
-  FileText,
   FileSpreadsheet,
   LogIn,
   LogOut,
@@ -79,8 +77,7 @@ const statusStyles: Record<string, string> = {
 const quickActions = [
   { label: "Leave request", icon: CalendarDays },
   { label: "Loan / advance", icon: Wallet },
-  { label: "Attendance fix", icon: Clock },
-  { label: "Download forms", icon: FileText },
+
 ];
 
 const clockTime = () =>

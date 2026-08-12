@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
-  Clock,
   Download,
-  FileText,
   FileSpreadsheet,
   LogIn,
   LogOut,
@@ -45,9 +43,11 @@ import { useSelection } from "@/hooks/use-selection";
 import { AttendanceCalendar } from "@/components/self-service/attendance-calendar";
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications";
 import {
   announcements,
   attendanceHistory,
+  documentsList,
   leaveBalances,
   leaveHistory,
   myPunchLog,
@@ -79,8 +79,7 @@ const statusStyles: Record<string, string> = {
 const quickActions = [
   { label: "Leave request", icon: CalendarDays },
   { label: "Loan / advance", icon: Wallet },
-  { label: "Attendance fix", icon: Clock },
-  { label: "Download forms", icon: FileText },
+
 ];
 
 const clockTime = () =>
@@ -104,6 +103,7 @@ const initialDevices = [
 
 function SelfServicePage() {
   const { user } = useAuth();
+  const { notify } = useNotifications();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("30");
@@ -121,6 +121,14 @@ function SelfServicePage() {
   const [leaveReason, setLeaveReason] = useState("");
   const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
+
+  useEffect(() => {
+    const expiring = documentsList.filter((d) => d.status !== "Valid").length;
+    if (expiring > 0) {
+      notify("documents", "Document expiry alert", `${expiring} document${expiring === 1 ? "" : "s"} need renewal.`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openLeaveForm = () => {
     setLeaveStep(1);
@@ -146,12 +154,14 @@ function SelfServicePage() {
       const t = clockTime();
       setPunchIn(t);
       toast.success(`Checked in at ${t}`);
+      notify("attendance", "Checked in", `Your check-in was recorded at ${t}.`);
       return;
     }
     if (!punchOut) {
       const t = clockTime();
       setPunchOut(t);
       toast.success(`Checked out at ${t}`);
+      notify("attendance", "Checked out", `Your check-out was recorded at ${t}.`);
       return;
     }
     toast.info("You already completed today's shift.");
@@ -202,10 +212,14 @@ function SelfServicePage() {
     setLeaveReason("");
     setLeaveStep(1);
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} day${days === 1 ? "" : "s"} awaiting approval.`);
   };
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
     if (ids.length === 0) return;
+    if (status !== "Pending") {
+      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request${ids.length === 1 ? "" : "s"} ${status.toLowerCase()}.`);
+    }
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
     setRequests((prev) =>

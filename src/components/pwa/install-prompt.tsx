@@ -1,48 +1,14 @@
 import { Download, X } from "lucide-react";
-import { useEffect, useState } from "react";
+
 
 import { Button } from "@/components/ui/button";
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-const DISMISS_KEY = "stafflink.install-dismissed";
+import { useInstall } from "@/lib/pwa-install";
 
 /** Shows an "Install StaffLink" prompt using the app logo. */
 export function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { showBanner, promptInstall, dismissBanner } = useInstall();
 
-  useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-      setDeferred(e as BeforeInstallPromptEvent);
-      setVisible(true);
-    };
-    const onInstalled = () => setVisible(false);
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
-
-  if (!visible || !deferred) return null;
-
-  const dismiss = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
-    setVisible(false);
-  };
-
-  const install = async () => {
-    await deferred.prompt();
-    await deferred.userChoice;
-    setVisible(false);
-  };
+  if (!showBanner) return null;
 
   return (
     <div className="fixed inset-x-3 bottom-24 z-[60] md:inset-x-auto md:right-5 md:bottom-5 md:w-96">
@@ -54,10 +20,10 @@ export function InstallPrompt() {
             Add it to your home screen for quick access.
           </p>
         </div>
-        <Button size="sm" className="shrink-0" onClick={install}>
+        <Button size="sm" className="shrink-0" onClick={() => void promptInstall()}>
           <Download className="size-4" /> Install
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Dismiss install prompt" onClick={dismiss}>
+        <Button variant="ghost" size="icon" aria-label="Dismiss install prompt" onClick={dismissBanner}>
           <X className="size-4" />
         </Button>
       </div>
