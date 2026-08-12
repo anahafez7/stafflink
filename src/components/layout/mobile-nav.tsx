@@ -3,12 +3,16 @@ import { CalendarDays, Fingerprint, Home, UserRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { documentsList, leaveHistory } from "@/data/modules";
+
+const pendingLeaves = leaveHistory.filter((r) => r.status === "Pending").length;
+const unreadDocuments = documentsList.filter((d) => d.status !== "Valid").length;
 
 const items = [
-  { label: "Home", to: "/self-service", hash: "", icon: Home },
-  { label: "Attendance", to: "/self-service", hash: "attendance", icon: Fingerprint },
-  { label: "Leaves", to: "/self-service", hash: "leaves", icon: CalendarDays },
-  { label: "Profile", to: "/self-service", hash: "profile", icon: UserRound },
+  { label: "Home", to: "/self-service", hash: "", icon: Home, badge: 0 },
+  { label: "Attendance", to: "/self-service", hash: "attendance", icon: Fingerprint, badge: 0 },
+  { label: "Leaves", to: "/self-service", hash: "leaves", icon: CalendarDays, badge: pendingLeaves },
+  { label: "Profile", to: "/self-service", hash: "profile", icon: UserRound, badge: unreadDocuments },
 ] as const;
 
 /** Mobile-only bottom navigation for the employee panel. */
@@ -52,6 +56,11 @@ export function MobileNav() {
                   )}
                 >
                   <item.icon className={cn("transition-all duration-300", active ? "size-[22px]" : "size-5")} />
+                  {item.badge > 0 ? (
+                    <span className="absolute right-1 top-0 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-4 text-destructive-foreground">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="transition-colors duration-300">{item.label}</span>
               </Link>
