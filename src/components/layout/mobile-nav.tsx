@@ -51,7 +51,7 @@ export function MobileNav() {
                 />
                 <span
                   className={cn(
-                    "grid size-8 place-items-center rounded-xl transition-all duration-300 ease-out",
+                    "relative grid size-8 place-items-center rounded-xl transition-all duration-300 ease-out",
                     active ? "-translate-y-0.5 bg-primary/10" : "translate-y-0 bg-transparent",
                   )}
                 >
