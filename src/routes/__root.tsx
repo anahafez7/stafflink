@@ -19,6 +19,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { LoginScreen } from "@/components/auth/login-screen";
 import { AccessGuard } from "@/components/auth/access-guard";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -100,6 +101,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "theme-color", content: "#112E81" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "StaffLink" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
       {
@@ -113,6 +118,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -174,6 +181,7 @@ function AppShell() {
         </div>
       </div>
       <MobileNav />
+      <InstallPrompt />
     </SidebarProvider>
   );
 }
