@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
-  Clock,
   Download,
-  FileText,
   FileSpreadsheet,
   LogIn,
   LogOut,
