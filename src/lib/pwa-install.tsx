@@ -7,6 +7,14 @@ type BeforeInstallPromptEvent = Event & {
 
 const SEEN_KEY = "stafflink.install-prompt-seen";
 
+function detectIosSafari() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const webkit = /WebKit/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  return iOS && webkit;
+}
+
 type InstallContextValue = {
   /** Browser offered an install prompt and the app isn't installed yet. */
   canInstall: boolean;
@@ -25,10 +33,12 @@ export function InstallProvider({ children }: { children: ReactNode }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [seen, setSeen] = useState(true);
+  const [ios, setIos] = useState(false);
 
   useEffect(() => {
     setSeen(localStorage.getItem(SEEN_KEY) === "1");
     setInstalled(window.matchMedia("(display-mode: standalone)").matches);
+    setIos(detectIosSafari() && !("standalone" in navigator && (navigator as { standalone?: boolean }).standalone));
 
     const onPrompt = (e: Event) => {
       e.preventDefault();
@@ -63,13 +73,13 @@ export function InstallProvider({ children }: { children: ReactNode }) {
   const value = useMemo<InstallContextValue>(
     () => ({
       canInstall: !!deferred && !installed,
-      showBanner: !installed && !seen,
+      showBanner: (!!deferred || ios) && !installed && !seen,
       needsManualInstructions: !deferred,
       installed,
       promptInstall,
       dismissBanner: markSeen,
     }),
-    [deferred, installed, seen, promptInstall, markSeen],
+    [deferred, ios, installed, seen, promptInstall, markSeen],
   );
 
   return <InstallContext.Provider value={value}>{children}</InstallContext.Provider>;
