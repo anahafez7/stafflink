@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Download, FileText, HardDrive, RefreshCw, Scan, Search, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useSelection } from "@/hooks/use-selection";
 import { documentsList } from "@/data/modules";
 import { useAuth } from "@/lib/auth";
+import { useBadges } from "@/lib/badges";
 
 export const Route = createFileRoute("/documents")({
   head: () => ({
@@ -47,6 +48,11 @@ function DocumentsPage() {
   );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const { setUnreadDocuments } = useBadges();
+
+  useEffect(() => {
+    setUnreadDocuments(rows.filter((d) => d.status !== "Valid").length);
+  }, [rows, setUnreadDocuments]);
 
   const filtered = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);

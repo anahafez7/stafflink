@@ -3,28 +3,26 @@ import { CalendarDays, Fingerprint, Home, UserRound, Users, Target } from "lucid
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
-import { documentsList, leaveHistory } from "@/data/modules";
-
-const pendingLeaves = leaveHistory.filter((r) => r.status === "Pending").length;
-const unreadDocuments = documentsList.filter((d) => d.status !== "Valid").length;
+import { useBadges } from "@/lib/badges";
 
 const defaultItems = [
-  { label: "Home", to: "/", icon: Home, badge: 0 },
-  { label: "Attendance", to: "/self-service", icon: Fingerprint, badge: 0 },
-  { label: "Leaves", to: "/leaves", icon: CalendarDays, badge: pendingLeaves },
-  { label: "Profile", to: "/profile", icon: UserRound, badge: unreadDocuments },
+  { label: "Home", to: "/", icon: Home, badge: "none" },
+  { label: "Attendance", to: "/self-service", icon: Fingerprint, badge: "none" },
+  { label: "Leaves", to: "/leaves", icon: CalendarDays, badge: "leaves" },
+  { label: "Profile", to: "/profile", icon: UserRound, badge: "documents" },
 ] as const;
 
 const managerItems = [
-  { label: "Home", to: "/", icon: Home, badge: 0 },
-  { label: "My Team", to: "/hr", icon: Users, badge: 0 },
-  { label: "Tasks", to: "/tasks", icon: Target, badge: 0 },
-  { label: "Profile", to: "/profile", icon: UserRound, badge: unreadDocuments },
+  { label: "Home", to: "/", icon: Home, badge: "none" },
+  { label: "My Team", to: "/hr", icon: Users, badge: "none" },
+  { label: "Tasks", to: "/tasks", icon: Target, badge: "none" },
+  { label: "Profile", to: "/profile", icon: UserRound, badge: "documents" },
 ] as const;
 
 /** Mobile-only bottom navigation for the employee panel. */
 export function MobileNav() {
   const { user } = useAuth();
+  const { pendingLeaves, unreadDocuments } = useBadges();
   const { pathname, hash } = useRouterState({ select: (r) => r.location });
 
   if (!user || (user.role !== "employee" && user.role !== "manager")) return null;
@@ -39,6 +37,8 @@ export function MobileNav() {
       <ul className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => {
           const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to));
+          const count =
+            item.badge === "leaves" ? pendingLeaves : item.badge === "documents" ? unreadDocuments : 0;
           return (
             <li key={item.label}>
               <Link
@@ -64,9 +64,9 @@ export function MobileNav() {
                   )}
                 >
                   <item.icon className={cn("transition-all duration-300", active ? "size-[22px]" : "size-5")} />
-                  {item.badge > 0 ? (
+                  {count > 0 ? (
                     <span className="absolute right-1 top-0 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-4 text-destructive-foreground">
-                      {item.badge > 9 ? "9+" : item.badge}
+                      {count > 9 ? "9+" : count}
                     </span>
                   ) : null}
                 </span>

@@ -43,6 +43,7 @@ import { useSelection } from "@/hooks/use-selection";
 import { AttendanceCalendar } from "@/components/self-service/attendance-calendar";
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
+import { useBadges } from "@/lib/badges";
 import {
   announcements,
   attendanceHistory,
@@ -107,6 +108,11 @@ function LeavesPage() {
   const [devices, setDevices] = useState(initialDevices);
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
+  const { setPendingLeaves } = useBadges();
+
+  useEffect(() => {
+    setPendingLeaves(requests.filter((r) => r.status === "Pending").length);
+  }, [requests, setPendingLeaves]);
   const [query, setQuery] = useState("");
   const [balances, setBalances] = useState(leaveBalances);
   const [punchIn, setPunchIn] = useState<string | null>(null);

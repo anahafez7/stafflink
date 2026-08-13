@@ -22,6 +22,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { InstallProvider } from "@/lib/pwa-install";
 import { NotificationProvider } from "@/lib/notifications";
+import { BadgeProvider } from "@/lib/badges";
 
 function NotFoundComponent() {
   return (
@@ -152,8 +153,10 @@ function RootComponent() {
       <AuthProvider>
         <NotificationProvider>
           <InstallProvider>
-            <AppShell />
-            <Toaster />
+            <BadgeProvider>
+              <AppShell />
+              <Toaster />
+            </BadgeProvider>
           </InstallProvider>
         </NotificationProvider>
       </AuthProvider>
