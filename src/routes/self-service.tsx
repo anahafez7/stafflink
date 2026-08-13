@@ -44,6 +44,7 @@ import { AttendanceCalendar } from "@/components/self-service/attendance-calenda
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/lib/notifications";
+import { useBadges } from "@/lib/badges";
 import {
   announcements,
   attendanceHistory,
