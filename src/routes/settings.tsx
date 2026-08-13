@@ -4,6 +4,7 @@ import { ChevronRight, Plus } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { ShortcutsCard } from "@/components/pwa/shortcuts-card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { settingsGroups, settingsToggles } from "@/data/modules";
@@ -44,6 +45,7 @@ function SettingsPage() {
       />
 
       <NotificationSettings />
+      <ShortcutsCard />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {settingsGroups.map((group) => (
