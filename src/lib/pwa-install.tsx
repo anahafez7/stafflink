@@ -12,6 +12,8 @@ type InstallContextValue = {
   canInstall: boolean;
   /** Auto banner should be shown (only once per device). */
   showBanner: boolean;
+  /** Browser has no install prompt (e.g. iOS Safari) — show manual instructions. */
+  needsManualInstructions: boolean;
   installed: boolean;
   promptInstall: () => Promise<"accepted" | "dismissed" | "unavailable">;
   dismissBanner: () => void;
@@ -61,7 +63,8 @@ export function InstallProvider({ children }: { children: ReactNode }) {
   const value = useMemo<InstallContextValue>(
     () => ({
       canInstall: !!deferred && !installed,
-      showBanner: !!deferred && !installed && !seen,
+      showBanner: !installed && !seen,
+      needsManualInstructions: !deferred,
       installed,
       promptInstall,
       dismissBanner: markSeen,
@@ -78,6 +81,7 @@ export function useInstall() {
     return {
       canInstall: false,
       showBanner: false,
+      needsManualInstructions: true,
       installed: false,
       promptInstall: async () => "unavailable" as const,
       dismissBanner: () => {},
