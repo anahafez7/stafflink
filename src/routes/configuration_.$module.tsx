@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download, Upload, Plus, Trash2, ChevronDown, Sparkles, Edit2, Globe2, Building2, MapPin, Radar } from "lucide-react";
+import { ArrowLeft, Download, Upload, Plus, Trash2, ChevronDown, Sparkles, Edit2, Globe2, Building2, MapPin, Radar, Users, Layers, Search, Mail, MessageSquare, Bell, Smartphone, FileArchive, Shield, Save, Eye } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/layout/stat-card";
 import { worksites } from "@/data/modules";
@@ -104,10 +104,16 @@ function ConfigurationModulePage() {
         {module === "holidays" && <HolidaysModule />}
         {module === "holiday-types" && <HolidayTypesModule />}
         {module === "requests" && <RequestsModule />}
-        {module === "locations" && <LocationsModule />}
+        {module === "geo-fencing" && <GeoFencingModule />}
+        {module === "allowances" && <AllowancesModule />}
+        {module === "targets-overtime" && <TargetsOvertimeModule />}
+        {module === "kpis" && <KPIsModule />}
+        {module === "shifts" && <ShiftsModule />}
+        {module === "late-penalties" && <LatePenaltiesModule />}
+        {module === "settings" && <SettingsModule />}
 
         {/* Fallback for generic modules */}
-        {!["departments", "positions", "cities", "balances", "leave-types", "holidays", "holiday-types", "requests", "locations"].includes(module) && (
+        {!["departments", "positions", "cities", "balances", "leave-types", "holidays", "holiday-types", "requests", "geo-fencing", "allowances", "targets-overtime", "kpis", "shifts", "late-penalties", "settings"].includes(module) && (
           <GenericModule moduleName={module} />
         )}
       </div>
@@ -789,71 +795,557 @@ function RequestsModule() {
   );
 }
 
-function LocationsModule() {
+function GeoFencingModule() {
   return (
-    <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Countries" value="3" delta="EG · AE · SA" icon={Globe2} tone="brand" />
-        <StatCard label="Branches" value="6" delta="+1 this year" icon={Building2} tone="info" />
-        <StatCard label="Worksites" value="14" delta="2 in setup" icon={MapPin} tone="success" />
-        <StatCard label="Active geofences" value="11" delta="98% punch accuracy" icon={Radar} tone="warning" />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
-        <section className="surface-card p-5 border border-border rounded-xl">
-          <h2 className="text-sm font-semibold">Coverage map</h2>
-          <div className="mt-4 space-y-3">
-            {worksites.map((w) => (
-              <div key={w.name} className="flex items-start gap-3 rounded-xl border border-border p-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-                  <MapPin className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{w.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {w.city} · {w.coords}
-                  </p>
-                </div>
-                <Badge variant="outline" className={w.geofence ? "border-success/40 text-success" : "border-border text-muted-foreground"}>
-                  {w.geofence ? "Geofenced" : "Open"}
-                </Badge>
-              </div>
-            ))}
+    <div className="space-y-6">
+      <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-border bg-muted/20">
+        <iframe
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          scrolling="no"
+          marginHeight={0}
+          marginWidth={0}
+          src="https://www.openstreetmap.org/export/embed.html?bbox=29.8%2C29.9%2C31.5%2C30.2&amp;layer=mapnik&amp;marker=30.0355%2C31.2230"
+          style={{ border: 0 }}
+        />
+        <div className="absolute top-4 left-4 right-4 flex items-start justify-between pointer-events-none">
+          <div className="bg-background/95 backdrop-blur-sm px-4 py-2 rounded-full border border-border shadow-sm flex items-center gap-3 text-sm pointer-events-auto">
+            <MapPin className="size-4 text-[#f35b1d]" />
+            <span className="font-semibold">Egypt overview</span>
+            <span className="text-muted-foreground">2 cities · 2 sites · 0 check-ins (7d)</span>
           </div>
-        </section>
-
-        <section className="surface-card border border-border rounded-xl overflow-hidden">
-          <div className="border-b border-border p-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Worksites & radius rules</h2>
-            <Button variant="secondary" size="sm" className="h-8">
-              <Plus className="size-3 mr-1" /> Add worksite
+          <div className="flex gap-2 pointer-events-auto">
+            <Button variant="secondary" size="sm" className="rounded-full shadow-sm bg-background/95 backdrop-blur-sm border-border hover:bg-background">
+              <span className="w-2 h-2 rounded-full bg-brand mr-2" /> Employees
+            </Button>
+            <Button variant="secondary" size="sm" className="rounded-full shadow-sm bg-background/95 backdrop-blur-sm border-border hover:bg-background">
+              <span className="w-2 h-2 rounded-full bg-success mr-2" /> Sites
+            </Button>
+            <Button variant="secondary" size="sm" className="rounded-full shadow-sm bg-background/95 backdrop-blur-sm border-border hover:bg-background">
+              <span className="w-2 h-2 rounded-full bg-warning mr-2" /> Check-ins
+            </Button>
+            <Button variant="secondary" size="sm" className="rounded-full shadow-sm bg-background/95 backdrop-blur-sm border-border hover:bg-background">
+              Hide
             </Button>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-secondary/40">
-                <TableRow>
-                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Worksite</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">City</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Employees</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Radius</TableHead>
-                  <TableHead className="text-xs font-semibold text-muted-foreground uppercase">GPS</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {worksites.map((w) => (
-                  <TableRow key={w.name}>
-                    <TableCell className="text-sm font-medium">{w.name}</TableCell>
-                    <TableCell className="text-sm">{w.city}</TableCell>
-                    <TableCell className="text-sm tabular-nums">{w.employees}</TableCell>
-                    <TableCell className="text-sm tabular-nums">{w.radius}</TableCell>
-                    <TableCell className="text-sm tabular-nums text-muted-foreground">{w.coords}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Geo-Fencing</h2>
+          <p className="text-sm text-muted-foreground">Approved locations and check-in radii</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="rounded-full">
+            <span className="mr-2">🔗</span> Employee Access
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="rounded-full">
+                <Layers className="mr-2 size-4" /> Bulk assign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background gap-0">
+              <div className="p-6 pb-4">
+                <DialogTitle className="text-xl font-bold">Bulk assign employees</DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-1">
+                  Pick locations and employees, then apply to all combinations.
+                </DialogDescription>
+              </div>
+              <div className="px-6 py-2 grid grid-cols-2 gap-6 bg-muted/5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Locations · 0/2</span>
+                    <button className="text-sm font-medium text-[#f35b1d] hover:underline">Select all</button>
+                  </div>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    <label className="flex items-start gap-3 p-4 rounded-xl border border-border bg-background cursor-pointer hover:border-[#f35b1d]/50 transition-colors">
+                      <Checkbox className="mt-1" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-none">HQ</p>
+                        <p className="text-xs text-muted-foreground font-mono">500m · 2 assigned</p>
+                      </div>
+                    </label>
+                    <label className="flex items-start gap-3 p-4 rounded-xl border border-border bg-background cursor-pointer hover:border-[#f35b1d]/50 transition-colors">
+                      <Checkbox className="mt-1" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-none">Office</p>
+                        <p className="text-xs text-muted-foreground font-mono">340m · 0 assigned</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Employees · 0/261</span>
+                    <button className="text-sm font-medium text-[#f35b1d] hover:underline">Select all</button>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Input placeholder="Search..." className="pl-9 bg-background rounded-full border-border/50" />
+                  </div>
+                  <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                    {[
+                      { name: "Abanob Vector Samy Boss", id: "221077", dept: "Administration" },
+                      { name: "Abd Elaziz Khaled Abd Elaziz Ali", id: "120606", dept: "Administration" },
+                      { name: "Abd Elhamid Mohamed Mahmoud Salem", id: "120722", dept: "Administration" },
+                      { name: "Abd Elrahman Abd Elnaser Zidan Ibrahem", id: "221064", dept: "Administration" },
+                      { name: "Abd Elrahman Saber Hamed Abd Elmeonem", id: "121404", dept: "Administration" }
+                    ].map((emp, i) => (
+                      <label key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-background cursor-pointer hover:border-[#f35b1d]/50 transition-colors">
+                        <Checkbox className="mt-1" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium leading-none">{emp.name}</p>
+                          <p className="text-xs text-muted-foreground">{emp.id} · {emp.dept}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 flex items-center justify-between border-t border-border/50 bg-background">
+                <span className="text-sm text-muted-foreground">Will affect 0 assignments.</span>
+                <div className="flex gap-3">
+                  <Button variant="outline" className="rounded-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive px-6">
+                    Remove
+                  </Button>
+                  <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-8">
+                    Assign
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" className="rounded-full">
+            <Users className="mr-2 size-4" /> Assign employees
+          </Button>
+          <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+            <Plus className="mr-2 size-4" /> Add location
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-6">
+        <div className="surface-card rounded-2xl border border-[#f35b1d]/30 overflow-hidden relative">
+          <div className="p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4">
+                <div className="size-10 rounded-full bg-[#f35b1d]/10 flex items-center justify-center text-[#f35b1d]">
+                  <MapPin className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">HQ</h3>
+                  <p className="text-sm text-muted-foreground mt-1">30.0355, 31.2230</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">2 · Employees</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="bg-success/10 text-success hover:bg-success/20 border-0 rounded-full px-3">
+                  ACTIVE
+                </Badge>
+                <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 rounded-full h-8 w-8">
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-        </section>
+          <div className="border-t border-border px-6 py-4 flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Radius</span>
+            <span className="font-medium">500 m</span>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#f35b1d]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AllowancesModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+          <Plus className="mr-2 size-4" /> Add allowance
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader className="bg-secondary/40">
+            <TableRow>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Name</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Kind</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Amount</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Currency</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Taxable</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Active</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[
+              { name: "Fuel", kind: "per_km", amount: "2.5", currency: "EGP", taxable: "No", active: "Yes" },
+              { name: "Housing", kind: "fixed", amount: "1500", currency: "EGP", taxable: "Yes", active: "Yes" },
+              { name: "Meal", kind: "per_day", amount: "50", currency: "EGP", taxable: "No", active: "Yes" },
+            ].map((allowance, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium">{allowance.name}</TableCell>
+                <TableCell className="text-muted-foreground">{allowance.kind}</TableCell>
+                <TableCell>{allowance.amount}</TableCell>
+                <TableCell className="text-muted-foreground">{allowance.currency}</TableCell>
+                <TableCell>{allowance.taxable}</TableCell>
+                <TableCell>{allowance.active}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit2 className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function TargetsOvertimeModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Targets & Overtime</h2>
+          <p className="text-sm text-muted-foreground">Daily/weekly hour targets and overtime rates.</p>
+        </div>
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+          <Plus className="mr-2 size-4" /> Add policy
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader className="bg-secondary/40">
+            <TableRow>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Name</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Daily</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Weekly</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">OT Rate</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">OT Cap</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Active</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[
+              { name: "Part-Time", daily: "4h", weekly: "20h", otRate: "x1.25", otCap: "2h", active: "Yes" },
+              { name: "Shift Workers", daily: "8h", weekly: "48h", otRate: "x2", otCap: "6h", active: "Yes" },
+              { name: "Standard Full-Time", daily: "8h", weekly: "40h", otRate: "x1.5", otCap: "4h", active: "Yes" },
+            ].map((policy, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium">{policy.name}</TableCell>
+                <TableCell>{policy.daily}</TableCell>
+                <TableCell>{policy.weekly}</TableCell>
+                <TableCell>{policy.otRate}</TableCell>
+                <TableCell>{policy.otCap}</TableCell>
+                <TableCell>{policy.active}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit2 className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function KPIsModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">KPIs</h2>
+          <p className="text-sm text-muted-foreground">Performance indicators with targets and weights.</p>
+        </div>
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+          <Plus className="mr-2 size-4" /> Add KPI
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader className="bg-secondary/40">
+            <TableRow>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Name</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Metric</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Target</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Unit</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Period</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Weight</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Active</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[
+              { name: "Attendance Rate", metric: "attendance_pct", target: "95", unit: "%", period: "monthly", weight: "2", active: "Yes" },
+              { name: "Customer Satisfaction", metric: "csat_score", target: "4.5", unit: "/5", period: "quarterly", weight: "1.5", active: "Yes" },
+              { name: "Punctuality", metric: "on_time_pct", target: "90", unit: "%", period: "monthly", weight: "1.5", active: "Yes" },
+              { name: "Task Completion", metric: "tasks_done", target: "20", unit: "tasks", period: "monthly", weight: "1", active: "Yes" },
+            ].map((kpi, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium">{kpi.name}</TableCell>
+                <TableCell>{kpi.metric}</TableCell>
+                <TableCell className="text-center">{kpi.target}</TableCell>
+                <TableCell className="text-center">{kpi.unit}</TableCell>
+                <TableCell className="text-center">{kpi.period}</TableCell>
+                <TableCell className="text-center">{kpi.weight}</TableCell>
+                <TableCell className="text-center">{kpi.active}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit2 className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function ShiftsModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Shifts</h2>
+          <p className="text-sm text-muted-foreground">Manage work shifts and grace periods</p>
+        </div>
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+          <Plus className="mr-2 size-4" /> Add shift
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader className="bg-secondary/40">
+            <TableRow>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Name</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Start</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">End</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Grace</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Overnight</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Active</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[
+              { name: "Evening", start: "02:00 PM", end: "10:00 PM", grace: "10m", overnight: "No", active: "Yes" },
+              { name: "Flexible", start: "10:00 AM", end: "06:00 PM", grace: "30m", overnight: "No", active: "Yes" },
+              { name: "Morning", start: "09:00 AM", end: "05:00 PM", grace: "10m", overnight: "No", active: "Yes" },
+              { name: "Night", start: "10:00 PM", end: "06:00 AM", grace: "15m", overnight: "Yes", active: "Yes" },
+            ].map((shift, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium text-center">{shift.name}</TableCell>
+                <TableCell className="text-center">{shift.start}</TableCell>
+                <TableCell className="text-center">{shift.end}</TableCell>
+                <TableCell className="text-center">{shift.grace}</TableCell>
+                <TableCell className="text-center">{shift.overnight}</TableCell>
+                <TableCell className="text-center">{shift.active}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit2 className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function LatePenaltiesModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Late penalties</h2>
+          <p className="text-sm text-muted-foreground">Rules applied when employees arrive late.</p>
+        </div>
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 px-6">
+          <Plus className="mr-2 size-4" /> Add rule
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader className="bg-secondary/40">
+            <TableRow>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Name</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">From</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">To</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Penalty</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Value</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Active</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[
+              { name: "Warning", from: "1m", to: "15m", penalty: "Warning only", value: "0", active: "Yes" },
+              { name: "Minor Deduction", from: "16m", to: "30m", penalty: "Deduct amount", value: "25", active: "Yes" },
+              { name: "Major Deduction", from: "31m", to: "60m", penalty: "Deduct amount", value: "75", active: "Yes" },
+              { name: "Half-Day Deduction", from: "61m", to: "240m", penalty: "Deduct minutes", value: "240", active: "Yes" },
+            ].map((rule, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium">{rule.name}</TableCell>
+                <TableCell className="text-center">{rule.from}</TableCell>
+                <TableCell className="text-center">{rule.to}</TableCell>
+                <TableCell>{rule.penalty}</TableCell>
+                <TableCell className="text-center">{rule.value}</TableCell>
+                <TableCell className="text-center">{rule.active}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit2 className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function SettingsModule() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2 border-b border-border pb-4 overflow-x-auto custom-scrollbar">
+        <Button variant="ghost" className="rounded-full text-muted-foreground font-medium bg-background border border-border">
+          <Mail className="mr-2 size-4" /> SMTP / Email
+        </Button>
+        <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 shadow-sm font-medium">
+          <MessageSquare className="mr-2 size-4" /> SMS / OTP
+        </Button>
+        <Button variant="ghost" className="rounded-full text-muted-foreground font-medium bg-background border border-border">
+          <Bell className="mr-2 size-4" /> Notifications
+        </Button>
+        <Button variant="ghost" className="rounded-full text-muted-foreground font-medium bg-background border border-border">
+          <Smartphone className="mr-2 size-4" /> Push Notifications
+        </Button>
+        <Button variant="ghost" className="rounded-full text-muted-foreground font-medium bg-background border border-border">
+          <FileArchive className="mr-2 size-4" /> Auto Exports
+        </Button>
+        <Button variant="ghost" className="rounded-full text-muted-foreground font-medium bg-background border border-border">
+          <Shield className="mr-2 size-4" /> Security
+        </Button>
+      </div>
+
+      <div className="surface-card rounded-2xl border border-border p-6 space-y-6">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
+          ePush HTTP API (https://api.epusheg.com/api/v2/send_bulk). Credentials (password + API key) are stored securely server-side and never returned to the browser. Mobile numbers must be in 201XXXXXXXXX or 01XXXXXXXXX format. OTP sends are rate-limited to 1 every 60 seconds and 5 per hour per number.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Environment</label>
+            <div className="relative">
+              <select className="flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
+                <option>Live (2)</option>
+                <option>Sandbox</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Default Language</label>
+            <div className="relative">
+              <select className="flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
+                <option>English (2)</option>
+                <option>Arabic</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Username</label>
+            <Input defaultValue="integratedtechnics@epushagency.com" className="rounded-xl border-border bg-background" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Password (Stored - Leave blank to keep)</label>
+            <div className="relative">
+              <Input type="password" defaultValue="password123" className="rounded-xl border-border bg-background pr-10" />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <Eye className="size-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">API Key (Stored - Leave blank to keep)</label>
+            <div className="relative">
+              <Input type="password" defaultValue="****************" className="rounded-xl border-border bg-background pr-10" />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <Eye className="size-4" />
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">Stored encrypted at rest. The key is never sent back to the browser after saving.</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sender Token / ID</label>
+            <Input defaultValue="int technic" className="rounded-xl border-border bg-background" />
+          </div>
+        </div>
+
+        <div className="pt-2">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <Checkbox defaultChecked className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 rounded" />
+            <span className="text-sm font-medium">Enable SMS sending</span>
+          </label>
+        </div>
+
+        <div className="pt-2">
+          <Button className="rounded-full bg-[#f35b1d] text-white hover:bg-[#f35b1d]/90 font-medium px-6">
+            <Save className="mr-2 size-4" /> Save changes
+          </Button>
+        </div>
       </div>
     </div>
   );

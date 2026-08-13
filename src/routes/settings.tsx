@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronRight, Plus } from "lucide-react";
 
@@ -6,6 +7,8 @@ import { NotificationSettings } from "@/components/settings/notification-setting
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { settingsGroups, settingsToggles } from "@/data/modules";
+import { SmtpDialog } from "@/components/settings/smtp-dialog";
+import { GenericDialog } from "@/components/settings/generic-dialog";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -23,6 +26,9 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const [smtpOpen, setSmtpOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<string | null>(null);
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -49,6 +55,13 @@ function SettingsPage() {
                   <button
                     type="button"
                     className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition-colors hover:text-primary"
+                    onClick={() => {
+                      if (item.label === "SMTP Settings") {
+                        setSmtpOpen(true);
+                      } else if (["Company Info", "Contact", "Roles Settings", "SMS Settings"].includes(item.label)) {
+                        setActiveDialog(item.label);
+                      }
+                    }}
                   >
                     <span className="min-w-0 truncate text-sm">{item.label}</span>
                     <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
@@ -77,6 +90,37 @@ function SettingsPage() {
           ))}
         </ul>
       </section>
+
+      <SmtpDialog open={smtpOpen} onOpenChange={setSmtpOpen} />
+
+      <GenericDialog 
+        open={activeDialog === "Company Info"} 
+        onOpenChange={(o) => !o && setActiveDialog(null)}
+        title="Company Info"
+        description="Update your company profile and details."
+        fields={[{ label: "Company Name" }, { label: "Registration Number" }, { label: "Address" }]}
+      />
+      <GenericDialog 
+        open={activeDialog === "Contact"} 
+        onOpenChange={(o) => !o && setActiveDialog(null)}
+        title="Contact Details"
+        description="Update company contact information."
+        fields={[{ label: "Primary Email", type: "email" }, { label: "Phone Number", type: "tel" }, { label: "Website", type: "url" }]}
+      />
+      <GenericDialog 
+        open={activeDialog === "Roles Settings"} 
+        onOpenChange={(o) => !o && setActiveDialog(null)}
+        title="Roles Settings"
+        description="Configure user roles and permissions."
+        fields={[{ label: "Role Name" }, { label: "Access Level" }]}
+      />
+      <GenericDialog 
+        open={activeDialog === "SMS Settings"} 
+        onOpenChange={(o) => !o && setActiveDialog(null)}
+        title="SMS Settings"
+        description="Configure SMS gateway provider."
+        fields={[{ label: "Provider" }, { label: "API Key", type: "password" }, { label: "Sender ID" }]}
+      />
     </div>
   );
 }

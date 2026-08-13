@@ -11,20 +11,29 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as AttendanceRouteImport } from './routes/attendance'
 import { Route as ConfigurationRouteImport } from './routes/configuration'
+import { Route as DisciplinaryRouteImport } from './routes/disciplinary'
 import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as EngagementRouteImport } from './routes/engagement'
+import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as HrRouteImport } from './routes/hr'
 import { Route as LeavesRouteImport } from './routes/leaves'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PayrollRouteImport } from './routes/payroll'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RecruitmentRouteImport } from './routes/recruitment'
 import { Route as SelfServiceRouteImport } from './routes/self-service'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as TrainingRouteImport } from './routes/training'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ConfigurationModuleRouteImport } from './routes/configuration_.$module'
 import { Route as EmployeesEmployeeIdRouteImport } from './routes/employees.$employeeId'
+import { Route as RecruitmentIdRouteImport } from './routes/recruitment_.$id'
+import { Route as TasksTaskIdRouteImport } from './routes/tasks_.$taskId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssetsRoute = AssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttendanceRoute = AttendanceRouteImport.update({
@@ -46,9 +60,24 @@ const ConfigurationRoute = ConfigurationRouteImport.update({
   path: '/configuration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DisciplinaryRoute = DisciplinaryRouteImport.update({
+  id: '/disciplinary',
+  path: '/disciplinary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentsRoute = DocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EngagementRoute = EngagementRouteImport.update({
+  id: '/engagement',
+  path: '/engagement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpensesRoute = ExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HrRoute = HrRouteImport.update({
@@ -59,6 +88,11 @@ const HrRoute = HrRouteImport.update({
 const LeavesRoute = LeavesRouteImport.update({
   id: '/leaves',
   path: '/leaves',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PayrollRoute = PayrollRouteImport.update({
@@ -91,6 +125,16 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainingRoute = TrainingRouteImport.update({
+  id: '/training',
+  path: '/training',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -106,136 +150,209 @@ const EmployeesEmployeeIdRoute = EmployeesEmployeeIdRouteImport.update({
   path: '/employees/$employeeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecruitmentIdRoute = RecruitmentIdRouteImport.update({
+  id: '/recruitment_/$id',
+  path: '/recruitment/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
+  id: '/tasks_/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
   '/attendance': typeof AttendanceRoute
   '/configuration': typeof ConfigurationRoute
+  '/disciplinary': typeof DisciplinaryRoute
   '/documents': typeof DocumentsRoute
+  '/engagement': typeof EngagementRoute
+  '/expenses': typeof ExpensesRoute
   '/hr': typeof HrRoute
   '/leaves': typeof LeavesRoute
+  '/onboarding': typeof OnboardingRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
   '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
+  '/tasks': typeof TasksRoute
+  '/training': typeof TrainingRoute
   '/users': typeof UsersRoute
   '/configuration/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/recruitment/$id': typeof RecruitmentIdRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
   '/attendance': typeof AttendanceRoute
   '/configuration': typeof ConfigurationRoute
+  '/disciplinary': typeof DisciplinaryRoute
   '/documents': typeof DocumentsRoute
+  '/engagement': typeof EngagementRoute
+  '/expenses': typeof ExpensesRoute
   '/hr': typeof HrRoute
   '/leaves': typeof LeavesRoute
+  '/onboarding': typeof OnboardingRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
   '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
+  '/tasks': typeof TasksRoute
+  '/training': typeof TrainingRoute
   '/users': typeof UsersRoute
   '/configuration/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/recruitment/$id': typeof RecruitmentIdRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
   '/attendance': typeof AttendanceRoute
   '/configuration': typeof ConfigurationRoute
+  '/disciplinary': typeof DisciplinaryRoute
   '/documents': typeof DocumentsRoute
+  '/engagement': typeof EngagementRoute
+  '/expenses': typeof ExpensesRoute
   '/hr': typeof HrRoute
   '/leaves': typeof LeavesRoute
+  '/onboarding': typeof OnboardingRoute
   '/payroll': typeof PayrollRoute
   '/performance': typeof PerformanceRoute
   '/profile': typeof ProfileRoute
   '/recruitment': typeof RecruitmentRoute
   '/self-service': typeof SelfServiceRoute
   '/settings': typeof SettingsRoute
+  '/tasks': typeof TasksRoute
+  '/training': typeof TrainingRoute
   '/users': typeof UsersRoute
   '/configuration_/$module': typeof ConfigurationModuleRoute
   '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/recruitment_/$id': typeof RecruitmentIdRoute
+  '/tasks_/$taskId': typeof TasksTaskIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/analytics'
+    | '/assets'
     | '/attendance'
     | '/configuration'
+    | '/disciplinary'
     | '/documents'
+    | '/engagement'
+    | '/expenses'
     | '/hr'
     | '/leaves'
+    | '/onboarding'
     | '/payroll'
     | '/performance'
     | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
+    | '/tasks'
+    | '/training'
     | '/users'
     | '/configuration/$module'
     | '/employees/$employeeId'
+    | '/recruitment/$id'
+    | '/tasks/$taskId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
+    | '/assets'
     | '/attendance'
     | '/configuration'
+    | '/disciplinary'
     | '/documents'
+    | '/engagement'
+    | '/expenses'
     | '/hr'
     | '/leaves'
+    | '/onboarding'
     | '/payroll'
     | '/performance'
     | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
+    | '/tasks'
+    | '/training'
     | '/users'
     | '/configuration/$module'
     | '/employees/$employeeId'
+    | '/recruitment/$id'
+    | '/tasks/$taskId'
   id:
     | '__root__'
     | '/'
     | '/analytics'
+    | '/assets'
     | '/attendance'
     | '/configuration'
+    | '/disciplinary'
     | '/documents'
+    | '/engagement'
+    | '/expenses'
     | '/hr'
     | '/leaves'
+    | '/onboarding'
     | '/payroll'
     | '/performance'
     | '/profile'
     | '/recruitment'
     | '/self-service'
     | '/settings'
+    | '/tasks'
+    | '/training'
     | '/users'
     | '/configuration_/$module'
     | '/employees/$employeeId'
+    | '/recruitment_/$id'
+    | '/tasks_/$taskId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AssetsRoute: typeof AssetsRoute
   AttendanceRoute: typeof AttendanceRoute
   ConfigurationRoute: typeof ConfigurationRoute
+  DisciplinaryRoute: typeof DisciplinaryRoute
   DocumentsRoute: typeof DocumentsRoute
+  EngagementRoute: typeof EngagementRoute
+  ExpensesRoute: typeof ExpensesRoute
   HrRoute: typeof HrRoute
   LeavesRoute: typeof LeavesRoute
+  OnboardingRoute: typeof OnboardingRoute
   PayrollRoute: typeof PayrollRoute
   PerformanceRoute: typeof PerformanceRoute
   ProfileRoute: typeof ProfileRoute
   RecruitmentRoute: typeof RecruitmentRoute
   SelfServiceRoute: typeof SelfServiceRoute
   SettingsRoute: typeof SettingsRoute
+  TasksRoute: typeof TasksRoute
+  TrainingRoute: typeof TrainingRoute
   UsersRoute: typeof UsersRoute
   ConfigurationModuleRoute: typeof ConfigurationModuleRoute
   EmployeesEmployeeIdRoute: typeof EmployeesEmployeeIdRoute
+  RecruitmentIdRoute: typeof RecruitmentIdRoute
+  TasksTaskIdRoute: typeof TasksTaskIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -254,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assets': {
+      id: '/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/attendance': {
       id: '/attendance'
       path: '/attendance'
@@ -268,11 +392,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfigurationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/disciplinary': {
+      id: '/disciplinary'
+      path: '/disciplinary'
+      fullPath: '/disciplinary'
+      preLoaderRoute: typeof DisciplinaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documents': {
       id: '/documents'
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/engagement': {
+      id: '/engagement'
+      path: '/engagement'
+      fullPath: '/engagement'
+      preLoaderRoute: typeof EngagementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expenses': {
+      id: '/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hr': {
@@ -287,6 +432,13 @@ declare module '@tanstack/react-router' {
       path: '/leaves'
       fullPath: '/leaves'
       preLoaderRoute: typeof LeavesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payroll': {
@@ -331,6 +483,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/training': {
+      id: '/training'
+      path: '/training'
+      fullPath: '/training'
+      preLoaderRoute: typeof TrainingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users': {
       id: '/users'
       path: '/users'
@@ -352,26 +518,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeesEmployeeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recruitment_/$id': {
+      id: '/recruitment_/$id'
+      path: '/recruitment/$id'
+      fullPath: '/recruitment/$id'
+      preLoaderRoute: typeof RecruitmentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks_/$taskId': {
+      id: '/tasks_/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/tasks/$taskId'
+      preLoaderRoute: typeof TasksTaskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AssetsRoute: AssetsRoute,
   AttendanceRoute: AttendanceRoute,
   ConfigurationRoute: ConfigurationRoute,
+  DisciplinaryRoute: DisciplinaryRoute,
   DocumentsRoute: DocumentsRoute,
+  EngagementRoute: EngagementRoute,
+  ExpensesRoute: ExpensesRoute,
   HrRoute: HrRoute,
   LeavesRoute: LeavesRoute,
+  OnboardingRoute: OnboardingRoute,
   PayrollRoute: PayrollRoute,
   PerformanceRoute: PerformanceRoute,
   ProfileRoute: ProfileRoute,
   RecruitmentRoute: RecruitmentRoute,
   SelfServiceRoute: SelfServiceRoute,
   SettingsRoute: SettingsRoute,
+  TasksRoute: TasksRoute,
+  TrainingRoute: TrainingRoute,
   UsersRoute: UsersRoute,
   ConfigurationModuleRoute: ConfigurationModuleRoute,
   EmployeesEmployeeIdRoute: EmployeesEmployeeIdRoute,
+  RecruitmentIdRoute: RecruitmentIdRoute,
+  TasksTaskIdRoute: TasksTaskIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -258,7 +258,9 @@ export const settingsGroups = [
   {
     title: "Organization",
     items: [
-      { label: "Company profile", value: "StaffLink FZ-LLC" },
+      { label: "Company Info", value: "StaffLink FZ-LLC" },
+      { label: "Contact", value: "contact@stafflink.io" },
+      { label: "Roles Settings", value: "5 Roles" },
       { label: "Branches", value: "6 active" },
       { label: "Departments", value: "5 departments" },
       { label: "Positions", value: "48 positions" },
@@ -278,8 +280,8 @@ export const settingsGroups = [
   {
     title: "Platform",
     items: [
-      { label: "Email provider", value: "Connected" },
-      { label: "SMS gateway", value: "Connected" },
+      { label: "SMTP Settings", value: "Connected" },
+      { label: "SMS Settings", value: "Connected" },
       { label: "WhatsApp", value: "Not connected" },
       { label: "API access", value: "3 keys" },
       { label: "Backups", value: "Daily · 02:00" },

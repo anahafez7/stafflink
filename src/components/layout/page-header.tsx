@@ -9,8 +9,8 @@ export function PageHeader({
   actions,
 }: {
   section: string;
-  title: string;
-  description: string;
+  title: ReactNode;
+  description: ReactNode;
   actions?: ReactNode;
 }) {
   return (

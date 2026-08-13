@@ -20,7 +20,14 @@ export type ModuleKey =
   | "analytics"
   | "settings"
   | "users"
-  | "locations";
+  | "locations"
+  | "tasks"
+  | "onboarding"
+  | "expenses"
+  | "assets"
+  | "disciplinary"
+  | "training"
+  | "engagement";
 
 export type Role = "admin" | "hr_manager" | "manager" | "employee";
 
@@ -44,6 +51,13 @@ const allModules: ModuleKey[] = [
   "settings",
   "users",
   "locations",
+  "tasks",
+  "onboarding",
+  "expenses",
+  "assets",
+  "disciplinary",
+  "training",
+  "engagement",
 ];
 
 export const rolePermissions: Record<Role, ModuleKey[]> = {
@@ -58,8 +72,14 @@ export const rolePermissions: Record<Role, ModuleKey[]> = {
     "documents",
     "analytics",
     "locations",
+    "onboarding",
+    "expenses",
+    "assets",
+    "disciplinary",
+    "training",
+    "engagement",
   ],
-  manager: ["dashboard", "attendance", "performance", "analytics"],
+  manager: ["dashboard", "hr", "tasks", "attendance", "performance", "analytics"],
   employee: ["self-service", "documents"],
 };
 

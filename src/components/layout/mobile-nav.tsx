@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, Fingerprint, Home, UserRound } from "lucide-react";
+import { CalendarDays, Fingerprint, Home, UserRound, Users, Target } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -8,10 +8,17 @@ import { documentsList, leaveHistory } from "@/data/modules";
 const pendingLeaves = leaveHistory.filter((r) => r.status === "Pending").length;
 const unreadDocuments = documentsList.filter((d) => d.status !== "Valid").length;
 
-const items = [
+const defaultItems = [
   { label: "Home", to: "/", icon: Home, badge: 0 },
   { label: "Attendance", to: "/self-service", icon: Fingerprint, badge: 0 },
   { label: "Leaves", to: "/leaves", icon: CalendarDays, badge: pendingLeaves },
+  { label: "Profile", to: "/profile", icon: UserRound, badge: unreadDocuments },
+] as const;
+
+const managerItems = [
+  { label: "Home", to: "/", icon: Home, badge: 0 },
+  { label: "My Team", to: "/hr", icon: Users, badge: 0 },
+  { label: "Tasks", to: "/tasks", icon: Target, badge: 0 },
   { label: "Profile", to: "/profile", icon: UserRound, badge: unreadDocuments },
 ] as const;
 
@@ -20,7 +27,9 @@ export function MobileNav() {
   const { user } = useAuth();
   const { pathname, hash } = useRouterState({ select: (r) => r.location });
 
-  if (!user || user.role !== "employee") return null;
+  if (!user || (user.role !== "employee" && user.role !== "manager")) return null;
+  
+  const items = user.role === "manager" ? managerItems : defaultItems;
 
   return (
     <nav

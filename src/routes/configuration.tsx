@@ -23,7 +23,6 @@ export const configSections = [
     description: "Company structure and hierarchies",
     items: [
       { title: "Departments", description: "Manage company departments and units", icon: Building2, href: "/configuration/departments" },
-      { title: "Levels", description: "Organizational levels and hierarchy", icon: Layers, href: "/configuration/levels" },
       { title: "Positions", description: "Job titles and roles", icon: Briefcase, href: "/configuration/positions" },
       { title: "Job Grades", description: "Salary bands and job grading", icon: Award, href: "/configuration/job-grades" },
     ]
@@ -66,16 +65,16 @@ export const configSections = [
     category: "Location & IT",
     description: "Physical and network access",
     items: [
-      { title: "Locations", description: "Branches, worksites and geofences", icon: MapPin, href: "/configuration/locations" },
+      { title: "Geo-Fencing", description: "Approved locations and check-in radii", icon: MapPin, href: "/configuration/geo-fencing" },
       { title: "Cities & Districts", description: "Geographical areas", icon: MapPin, href: "/configuration/cities" },
       { title: "Networks", description: "Allowed Wi-Fi networks", icon: Wifi, href: "/configuration/networks" },
     ]
   },
   {
-    category: "Security",
-    description: "System access",
+    category: "System Settings",
+    description: "System-wide parameters",
     items: [
-      { title: "Roles & Permissions", description: "Role assignments and permissions", icon: ShieldCheck, href: "/configuration/roles" },
+      { title: "Settings", description: "SMTP, SMS, notifications and exports", icon: Settings2, href: "/configuration/settings" },
     ]
   }
 ];

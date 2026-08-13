@@ -30,7 +30,7 @@ export function StatCard({
         <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
-        <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${toneClass}`}>
+        <span className={`grid size-9 shrink-0 place-items-center rounded-full ${toneClass}`}>
           <Icon className="size-4" />
         </span>
       </div>

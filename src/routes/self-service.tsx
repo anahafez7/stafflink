@@ -641,7 +641,13 @@ function SelfServicePage() {
             <DialogTitle>Request leave</DialogTitle>
             <DialogDescription>
               Step {leaveStep} of 3 ·{" "}
-              {leaveStep === 1 ? "Choose leave type" : leaveStep === 2 ? "Pick your dates" : "Add a reason"}
+              {leaveStep === 1
+                ? "Choose leave type"
+                : leaveStep === 2
+                  ? "Pick your dates"
+                  : leaveType === "Sick"
+                    ? "Add reason & proof"
+                    : "Add a reason"}
             </DialogDescription>
           </DialogHeader>
 
@@ -736,6 +742,12 @@ function SelfServicePage() {
                     placeholder="Why do you need this leave?"
                   />
                 </div>
+                {leaveType === "Sick" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="leave-proof">Medical Certificate / Proof (Required)</Label>
+                    <Input id="leave-proof" type="file" className="rounded-xl file:mr-2 file:-ml-2 file:h-full file:border-0 file:bg-transparent file:px-4 file:text-sm file:font-medium hover:file:bg-transparent cursor-pointer py-2 h-12" />
+                  </div>
+                )}
                 <div className="rounded-xl border border-border p-3 text-sm">
                   <p className="font-medium">{leaveType} leave</p>
                   <p className="mt-1 text-xs tabular-nums text-muted-foreground">

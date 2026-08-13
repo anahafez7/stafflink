@@ -15,6 +15,12 @@ import {
   Settings2,
   User,
   CalendarDays,
+  UserPlus,
+  Receipt,
+  Laptop,
+  AlertOctagon,
+  GraduationCap,
+  HeartHandshake
 } from "lucide-react";
 
 import {
@@ -35,6 +41,7 @@ const workspace = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
   { title: "HR", url: "/hr", icon: Users, module: "hr" },
   { title: "Attendance", url: "/attendance", icon: Fingerprint, module: "attendance" },
+  { title: "Tasks", url: "/tasks", icon: Target, module: "tasks" },
   { title: "Payroll", url: "/payroll", icon: Wallet, module: "payroll" },
   { title: "Recruitment", url: "/recruitment", icon: UserSearch, module: "recruitment" },
   { title: "Performance", url: "/performance", icon: Target, module: "performance" },
@@ -42,6 +49,12 @@ const workspace = [
   { title: "Attendance", url: "/self-service", icon: UserCog, module: "self-service" },
   { title: "Leaves", url: "/leaves", icon: CalendarDays, module: "self-service" },
   { title: "My Profile", url: "/profile", icon: User, module: "self-service" },
+  { title: "Onboarding", url: "/onboarding", icon: UserPlus, module: "onboarding" },
+  { title: "Expenses", url: "/expenses", icon: Receipt, module: "expenses" },
+  { title: "Assets", url: "/assets", icon: Laptop, module: "assets" },
+  { title: "Disciplinary", url: "/disciplinary", icon: AlertOctagon, module: "disciplinary" },
+  { title: "Training", url: "/training", icon: GraduationCap, module: "training" },
+  { title: "Engagement", url: "/engagement", icon: HeartHandshake, module: "engagement" },
   { title: "Analytics", url: "/analytics", icon: BarChart3, module: "analytics" },
 ] as const;
 
@@ -53,7 +66,7 @@ const administration = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
   return (
@@ -84,10 +97,10 @@ export function AppSidebar() {
               <SidebarMenu>
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title === "HR" && user?.role === "manager" ? "My Team" : item.title}>
                       <Link to={item.url} className="flex items-center gap-3">
                         <item.icon className="size-4 shrink-0" />
-                        <span className="truncate">{item.title}</span>
+                        <span className="truncate">{item.title === "HR" && user?.role === "manager" ? "My Team" : item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
