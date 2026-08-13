@@ -121,6 +121,11 @@ function SelfServicePage() {
   const [leaveReason, setLeaveReason] = useState("");
   const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
+  const { setPendingLeaves } = useBadges();
+
+  useEffect(() => {
+    setPendingLeaves(requests.filter((r) => r.status === "Pending").length);
+  }, [requests, setPendingLeaves]);
 
   useEffect(() => {
     const expiring = documentsList.filter((d) => d.status !== "Valid").length;
