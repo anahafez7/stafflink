@@ -54,7 +54,7 @@ export function summarize(events: AnalyticsEvent[]) {
   const opened = byName("notification_opened");
   const deep = byName("deep_link_target");
   const deepOk = deep.filter((e) => e.props['success'] === true);
-  const permission = byName("notification_permission")[0]?.props.state ?? null;
+  const permission = byName("notification_permission")[0]?.props['state'] ?? null;
 
   const perChannel = ["attendance", "leaves", "documents"].map((channel) => {
     const s = shown.filter((e) => e.props['channel'] === channel).length;
