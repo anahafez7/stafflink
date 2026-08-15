@@ -44,6 +44,7 @@ import { AttendanceCalendar } from "@/components/self-service/attendance-calenda
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
 import { useBadges } from "@/lib/badges";
+import { useDeepLinkTarget } from "@/lib/deep-link";
 import {
   announcements,
   attendanceHistory,
@@ -109,6 +110,7 @@ function LeavesPage() {
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const { setPendingLeaves } = useBadges();
+  const focusedRequest = useDeepLinkTarget("request");
 
   useEffect(() => {
     setPendingLeaves(requests.filter((r) => r.status === "Pending").length);
@@ -380,7 +382,12 @@ function LeavesPage() {
                   </TableRow>
                 ) : null}
                 {filtered.map((r) => (
-                  <TableRow key={r.id} data-state={selection.isSelected(r.id) ? "selected" : undefined}>
+                  <TableRow
+                    key={r.id}
+                    data-deep-link={r.id}
+                    data-state={selection.isSelected(r.id) ? "selected" : undefined}
+                    className={focusedRequest === r.id ? "bg-brand/5 outline outline-2 -outline-offset-2 outline-brand/50" : undefined}
+                  >
                     <TableCell>
                       <Checkbox
                         aria-label={`Select ${r.id}`}

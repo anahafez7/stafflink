@@ -45,6 +45,7 @@ import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/lib/notifications";
 import { useBadges } from "@/lib/badges";
+import { useDeepLinkSection, useDeepLinkTarget } from "@/lib/deep-link";
 import {
   announcements,
   attendanceHistory,
@@ -82,6 +83,8 @@ const quickActions = [
   { label: "Loan / advance", icon: Wallet },
 
 ];
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 const clockTime = () =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -123,6 +126,8 @@ function SelfServicePage() {
   const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
   const { setPendingLeaves } = useBadges();
+  const focusedRequest = useDeepLinkTarget("request");
+  useDeepLinkSection();
 
   useEffect(() => {
     setPendingLeaves(requests.filter((r) => r.status === "Pending").length);
@@ -131,7 +136,12 @@ function SelfServicePage() {
   useEffect(() => {
     const expiring = documentsList.filter((d) => d.status !== "Valid").length;
     if (expiring > 0) {
-      notify("documents", "Document expiry alert", `${expiring} document${expiring === 1 ? "" : "s"} need renewal.`);
+      notify(
+        "documents",
+        "Document expiry alert",
+        `${expiring} document${expiring === 1 ? "" : "s"} need renewal.`,
+        documentsList.find((d) => d.status !== "Valid")?.name,
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -160,14 +170,14 @@ function SelfServicePage() {
       const t = clockTime();
       setPunchIn(t);
       toast.success(`Checked in at ${t}`);
-      notify("attendance", "Checked in", `Your check-in was recorded at ${t}.`);
+      notify("attendance", "Checked in", `Your check-in was recorded at ${t}.`, today());
       return;
     }
     if (!punchOut) {
       const t = clockTime();
       setPunchOut(t);
       toast.success(`Checked out at ${t}`);
-      notify("attendance", "Checked out", `Your check-out was recorded at ${t}.`);
+      notify("attendance", "Checked out", `Your check-out was recorded at ${t}.`, today());
       return;
     }
     toast.info("You already completed today's shift.");
@@ -218,13 +228,13 @@ function SelfServicePage() {
     setLeaveReason("");
     setLeaveStep(1);
     toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
-    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} day${days === 1 ? "" : "s"} awaiting approval.`);
+    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} day${days === 1 ? "" : "s"} awaiting approval.`, id);
   };
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
     if (ids.length === 0) return;
     if (status !== "Pending") {
-      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request${ids.length === 1 ? "" : "s"} ${status.toLowerCase()}.`);
+      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request${ids.length === 1 ? "" : "s"} ${status.toLowerCase()}.`, ids[0]);
     }
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
@@ -404,7 +414,7 @@ function SelfServicePage() {
       </div>
 
       <div className="grid gap-4">
-        <section className="surface-card overflow-hidden">
+        <section id="leaves" className="surface-card scroll-mt-20 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
             <h2 className="text-sm font-semibold">Leave request history</h2>
             <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
@@ -544,7 +554,12 @@ function SelfServicePage() {
                   </TableRow>
                 ) : null}
                 {filtered.map((r) => (
-                  <TableRow key={r.id} data-state={selection.isSelected(r.id) ? "selected" : undefined}>
+                  <TableRow
+                    key={r.id}
+                    data-deep-link={r.id}
+                    data-state={selection.isSelected(r.id) ? "selected" : undefined}
+                    className={focusedRequest === r.id ? "bg-brand/5 outline outline-2 -outline-offset-2 outline-brand/50" : undefined}
+                  >
                     <TableCell>
                       <Checkbox
                         aria-label={`Select ${r.id}`}

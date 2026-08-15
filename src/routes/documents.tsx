@@ -15,6 +15,7 @@ import { useSelection } from "@/hooks/use-selection";
 import { documentsList } from "@/data/modules";
 import { useAuth } from "@/lib/auth";
 import { useBadges } from "@/lib/badges";
+import { useDeepLinkTarget } from "@/lib/deep-link";
 
 export const Route = createFileRoute("/documents")({
   head: () => ({
@@ -49,6 +50,7 @@ function DocumentsPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const { setUnreadDocuments } = useBadges();
+  const focusedDoc = useDeepLinkTarget("doc");
 
   useEffect(() => {
     setUnreadDocuments(rows.filter((d) => d.status !== "Valid").length);
@@ -192,7 +194,12 @@ function DocumentsPage() {
                 </TableRow>
               ) : null}
               {filtered.map((d) => (
-                <TableRow key={d.name} data-state={selection.isSelected(d.name) ? "selected" : undefined}>
+                <TableRow
+                  key={d.name}
+                  data-deep-link={d.name}
+                  data-state={selection.isSelected(d.name) ? "selected" : undefined}
+                  className={focusedDoc === d.name ? "bg-brand/5 outline outline-2 -outline-offset-2 outline-brand/50" : undefined}
+                >
                   <TableCell>
                     <Checkbox
                       aria-label={`Select ${d.name}`}
