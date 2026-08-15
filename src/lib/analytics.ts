@@ -39,7 +39,9 @@ export function trackEvent(name: string, props: AnalyticsEvent["props"] = {}) {
 
 export function subscribeEvents(listener: Listener) {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function clearEvents() {
