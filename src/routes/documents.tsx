@@ -15,6 +15,7 @@ import { useSelection } from "@/hooks/use-selection";
 import { documentsList } from "@/data/modules";
 import { useAuth } from "@/lib/auth";
 import { useBadges } from "@/lib/badges";
+import { useDeepLinkTarget } from "@/lib/deep-link";
 
 export const Route = createFileRoute("/documents")({
   head: () => ({
