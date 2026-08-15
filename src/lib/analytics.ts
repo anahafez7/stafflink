@@ -53,12 +53,12 @@ export function summarize(events: AnalyticsEvent[]) {
   const shown = byName("notification_shown");
   const opened = byName("notification_opened");
   const deep = byName("deep_link_target");
-  const deepOk = deep.filter((e) => e.props.success === true);
+  const deepOk = deep.filter((e) => e.props['success'] === true);
   const permission = byName("notification_permission")[0]?.props.state ?? null;
 
   const perChannel = ["attendance", "leaves", "documents"].map((channel) => {
-    const s = shown.filter((e) => e.props.channel === channel).length;
-    const o = opened.filter((e) => e.props.channel === channel).length;
+    const s = shown.filter((e) => e.props['channel'] === channel).length;
+    const o = opened.filter((e) => e.props['channel'] === channel).length;
     return { channel, shown: s, opened: o, rate: s ? Math.round((o / s) * 100) : 0 };
   });
 
