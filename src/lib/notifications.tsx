@@ -85,7 +85,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       n.onclick = () => {
         window.focus();
         n.close();
-        void router.navigate({ href: url });
+        router.history.push(url);
       };
     },
     [settings, router, user?.role],
