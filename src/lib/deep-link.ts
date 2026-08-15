@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
+import { trackEvent } from "@/lib/analytics";
+
 /** Builds the in-app URL a notification should open. */
 export function notificationLink(
   channel: "attendance" | "leaves" | "documents",
@@ -34,6 +36,7 @@ export function useDeepLinkTarget(param: string): string | null {
     const id = window.setTimeout(() => {
       const el = document.querySelector(`[data-deep-link="${CSS.escape(value)}"]`);
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      trackEvent("deep_link_target", { param, value, success: Boolean(el), path: window.location.pathname });
     }, 120);
     return () => window.clearTimeout(id);
   }, [search, param]);
@@ -49,7 +52,14 @@ export function useDeepLinkSection() {
     const value = new URLSearchParams(search).get("focus");
     if (!value) return;
     const id = window.setTimeout(() => {
-      document.getElementById(value)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = document.getElementById(value);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      trackEvent("deep_link_target", {
+        param: "focus",
+        value,
+        success: Boolean(el),
+        path: window.location.pathname,
+      });
     }, 120);
     return () => window.clearTimeout(id);
   }, [search]);
