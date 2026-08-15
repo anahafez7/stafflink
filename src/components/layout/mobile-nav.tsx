@@ -22,7 +22,7 @@ const managerItems = [
 /** Mobile-only bottom navigation for the employee panel. */
 export function MobileNav() {
   const { user } = useAuth();
-  const { pendingLeaves, unreadDocuments } = useBadges();
+  const { pendingLeaves, unreadDocuments, syncing } = useBadges();
   const { pathname, hash } = useRouterState({ select: (r) => r.location });
 
   if (!user || (user.role !== "employee" && user.role !== "manager")) return null;
@@ -68,6 +68,12 @@ export function MobileNav() {
                     <span className="absolute right-1 top-0 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-4 text-destructive-foreground">
                       {count > 9 ? "9+" : count}
                     </span>
+                  ) : null}
+                  {syncing && item.badge !== "none" ? (
+                    <span
+                      aria-label="Syncing counts"
+                      className="absolute -right-0.5 bottom-0 size-2 animate-pulse rounded-full bg-brand"
+                    />
                   ) : null}
                 </span>
                 <span className="transition-colors duration-300">{item.label}</span>
