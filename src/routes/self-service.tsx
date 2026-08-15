@@ -414,7 +414,7 @@ function SelfServicePage() {
       </div>
 
       <div className="grid gap-4">
-        <section className="surface-card overflow-hidden">
+        <section id="leaves" className="surface-card scroll-mt-20 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
             <h2 className="text-sm font-semibold">Leave request history</h2>
             <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
