@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "@tanstack/react-router";
 
 import { useAuth } from "@/lib/auth";
+import { notificationLink } from "@/lib/deep-link";
 
 export type NotificationChannel = "attendance" | "leaves" | "documents";
 
@@ -24,7 +26,7 @@ type Ctx = {
   setSetting: (key: keyof NotificationSettings, value: boolean) => void;
   permission: NotificationPermission | "unsupported";
   requestPermission: () => Promise<void>;
-  notify: (channel: NotificationChannel, title: string, body: string) => void;
+  notify: (channel: NotificationChannel, title: string, body: string, itemId?: string) => void;
 };
 
 const NotificationContext = createContext<Ctx | null>(null);
@@ -36,6 +38,7 @@ function isQuiet() {
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
   const storageKey = `stafflink.notifications.${user?.email ?? "guest"}`;
   const [settings, setSettings] = useState<NotificationSettings>(defaults);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
@@ -67,13 +70,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const notify = useCallback(
-    (channel: NotificationChannel, title: string, body: string) => {
+    (channel: NotificationChannel, title: string, body: string, itemId?: string) => {
       if (!settings[channel]) return;
       if (settings.quietHours && isQuiet()) return;
       if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-      new Notification(title, { body, icon: "/icon-192.png", badge: "/icon-192.png", tag: channel });
+      const url = notificationLink(channel, itemId, user?.role);
+      const n = new Notification(title, {
+        body,
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        tag: channel,
+        data: { url },
+      });
+      n.onclick = () => {
+        window.focus();
+        n.close();
+        void router.navigate({ href: url });
+      };
     },
-    [settings],
+    [settings, router, user?.role],
   );
 
   const value = useMemo<Ctx>(
