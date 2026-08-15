@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { KeyRound, ShieldCheck, UserPlus, Users as UsersIcon } from "lucide-react";
+import { KeyRound, Pencil, ShieldCheck, UserPlus, Users as UsersIcon } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/layout/stat-card";
@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { accessLogs, roleMatrix, users } from "@/data/modules";
+import { CreateUserDialog } from "@/components/users/create-user-dialog";
+import { EditUserDialog } from "@/components/users/edit-user-dialog";
+import { EditRoleDialog } from "@/components/users/edit-role-dialog";
 
 export const Route = createFileRoute("/users")({
   head: () => ({
@@ -39,12 +42,7 @@ function UsersPage() {
         section="Users & Permissions"
         title="Access control"
         description="Role-based access with a full audit trail across the platform."
-        actions={
-          <Button variant="secondary">
-            <UserPlus className="size-4" />
-            <span>Invite user</span>
-          </Button>
-        }
+        actions={<CreateUserDialog />}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,6 +66,7 @@ function UsersPage() {
                 <TableHead>2FA</TableHead>
                 <TableHead>Last seen</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -99,6 +98,9 @@ function UsersPage() {
                       {u.status}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <EditUserDialog user={u} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -119,6 +121,7 @@ function UsersPage() {
                   {roleMatrix.modules.map((m) => (
                     <TableHead key={m}>{m}</TableHead>
                   ))}
+                  <TableHead className="w-[80px] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -132,6 +135,9 @@ function UsersPage() {
                         </span>
                       </TableCell>
                     ))}
+                    <TableCell className="text-right">
+                      <EditRoleDialog roleData={r} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

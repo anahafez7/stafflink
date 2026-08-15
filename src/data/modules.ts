@@ -66,13 +66,33 @@ export const users = [
 ];
 
 export const roleMatrix = {
-  modules: ["HR", "Attendance", "Payroll", "Recruitment", "Documents", "Settings"],
+  modules: [
+    "HR", "Attendance", "Payroll", "Recruitment", "Documents", "Settings", 
+    "Analytics", "Assets", "Configuration", "Disciplinary", "Engagement", 
+    "Expenses", "Leaves", "Onboarding", "Performance", "Self Service", 
+    "Tasks", "Training", "Users"
+  ],
   roles: [
-    { role: "Super Admin", access: ["full", "full", "full", "full", "full", "full"] },
-    { role: "HR Manager", access: ["full", "full", "read", "full", "full", "read"] },
-    { role: "Payroll Officer", access: ["read", "read", "full", "none", "read", "none"] },
-    { role: "Manager", access: ["read", "full", "none", "read", "read", "none"] },
-    { role: "Employee", access: ["none", "read", "read", "none", "read", "none"] },
+    { 
+      role: "Super Admin", 
+      access: ["full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full", "full"] 
+    },
+    { 
+      role: "HR Manager", 
+      access: ["full", "full", "read", "full", "full", "read", "read", "read", "none", "full", "full", "none", "full", "full", "full", "full", "full", "full", "full"] 
+    },
+    { 
+      role: "Payroll Officer", 
+      access: ["read", "read", "full", "none", "read", "none", "none", "none", "none", "none", "none", "full", "read", "none", "none", "read", "none", "none", "none"] 
+    },
+    { 
+      role: "Manager", 
+      access: ["read", "full", "none", "read", "read", "none", "read", "read", "none", "read", "read", "read", "read", "read", "full", "full", "full", "read", "read"] 
+    },
+    { 
+      role: "Employee", 
+      access: ["none", "read", "read", "none", "read", "none", "none", "none", "none", "none", "read", "read", "read", "none", "read", "full", "read", "read", "none"] 
+    },
   ] as { role: string; access: ("full" | "read" | "none")[] }[],
 };
 
