@@ -157,7 +157,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(digestKey, JSON.stringify(merged));
         return merged;
       });
-      trackEvent("notification_digest_changed", next as Record<string, unknown>);
+      trackEvent("notification_digest_changed", {
+        enabled: next.enabled ?? null,
+        time: next.time ?? null,
+      });
     },
     [digestKey],
   );
