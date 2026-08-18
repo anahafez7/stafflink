@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { channelMeta, useNotifications } from "@/lib/notifications";
 import { useInstall } from "@/lib/pwa-install";
 import { IosInstallGuide } from "@/components/pwa/ios-install-guide";
@@ -44,7 +45,8 @@ const troubleshooting = [
 
 /** Per-user push notification preferences, permission status and the manual install action. */
 export function NotificationSettings() {
-  const { settings, setSetting, permission, requestPermission, notify } = useNotifications();
+  const { settings, setSetting, permission, requestPermission, notify, digest, setDigest, sendDigestNow, unreadCount } =
+    useNotifications();
   const { canInstall, installed, promptInstall } = useInstall();
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -138,6 +140,43 @@ export function NotificationSettings() {
           />
         </li>
       </ul>
+
+      <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">Daily digest</p>
+            <p className="text-xs text-muted-foreground">
+              Bundle alerts into one summary instead of individual pushes.
+            </p>
+          </div>
+          <Switch
+            checked={digest.enabled}
+            onCheckedChange={(v) => setDigest({ enabled: v })}
+            aria-label="Daily digest"
+          />
+        </div>
+        {digest.enabled ? (
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <label className="text-xs text-muted-foreground">
+              <span className="mb-1 block">Delivery time</span>
+              <Input
+                type="time"
+                value={digest.time}
+                onChange={(e) => setDigest({ time: e.target.value })}
+                className="w-32"
+                aria-label="Digest delivery time"
+              />
+            </label>
+            <Button size="sm" variant="secondary" onClick={sendDigestNow}>
+              Send digest now
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              {unreadCount} unread queued
+              {digest.lastSentAt ? ` · last sent ${new Date(digest.lastSentAt).toLocaleString()}` : ""}
+            </p>
+          </div>
+        ) : null}
+      </div>
 
       <IosInstallGuide open={guideOpen} onOpenChange={setGuideOpen} />
     </section>
