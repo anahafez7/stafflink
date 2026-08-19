@@ -26,9 +26,10 @@ import {
 import { attendanceHistory } from "@/data/modules";
 import {
   employeeAdvances, employeeAttendanceSummary, employeeBalances, employeeCustody,
-  employeeDocs, employeeLeaves, employeeSite, getEmployee,
+  employeeDocs, employeeLeaves, employeePayroll, employeeSite, getEmployee,
 } from "@/data/employee-detail";
 import type { EmployeeDoc } from "@/data/employee-detail";
+import { downloadCsv, printTableAsPdf } from "@/lib/export";
 
 export const Route = createFileRoute("/employees/$employeeId")({
   head: () => ({
@@ -98,6 +99,7 @@ function EmployeeDetailPage() {
   const [newTag, setNewTag] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [upload, setUpload] = useState({ name: "", category: "Contract", tags: "", expires: "" });
+  const [payPeriod, setPayPeriod] = useState("August 2026");
 
   const data = useMemo(() => {
     if (!employee) return null;
@@ -113,7 +115,12 @@ function EmployeeDetailPage() {
     };
   }, [employee]);
 
-  if (!employee || !data) {
+  const payroll = useMemo(
+    () => (employee ? employeePayroll(employee, payPeriod) : null),
+    [employee, payPeriod],
+  );
+
+  if (!employee || !data || !payroll) {
     return (
       <div className="space-y-5">
         <PageHeader section="HR" title="Employee not found" description="This record no longer exists in the directory." />
