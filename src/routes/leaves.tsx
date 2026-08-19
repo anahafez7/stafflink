@@ -44,6 +44,7 @@ import { AttendanceCalendar } from "@/components/self-service/attendance-calenda
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
 import { useAuth } from "@/lib/auth";
 import { useBadges } from "@/lib/badges";
+import { useNotifications } from "@/lib/notifications";
 import { useDeepLinkTarget } from "@/lib/deep-link";
 import {
   announcements,
@@ -110,6 +111,7 @@ function LeavesPage() {
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
   const { setPendingLeaves } = useBadges();
+  const { notify } = useNotifications();
   const focusedRequest = useDeepLinkTarget("request");
 
   useEffect(() => {
@@ -213,6 +215,7 @@ function LeavesPage() {
     if (ids.length === 0) return;
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
+    const decided = requests.filter((r) => ids.includes(r.id) && r.status !== status);
     setRequests((prev) =>
       prev.map((r) => {
         if (!ids.includes(r.id) || r.status === status) return r;
@@ -232,6 +235,16 @@ function LeavesPage() {
         };
       }),
     );
+    // Push each decision into the notification inbox so approvals are visible there.
+    decided.forEach((r) => {
+      if (status === "Pending") return;
+      notify(
+        "leaves",
+        `${r.type} ${status.toLowerCase()}`,
+        `${r.id} · ${r.period} (${r.days} day${r.days === 1 ? "" : "s"}) — ${status} by ${user?.name ?? "Manager"} · ${stamp}`,
+        r.id,
+      );
+    });
     setBalances((prev) =>
       prev.map((b) => {
         const delta = deltas.get(b.type) ?? 0;

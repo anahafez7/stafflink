@@ -167,6 +167,16 @@ export function NotificationSettings() {
                 aria-label="Digest delivery time"
               />
             </label>
+            <label className="text-xs text-muted-foreground">
+              <span className="mb-1 block">Test date (optional)</span>
+              <Input
+                type="date"
+                value={digest.testDate}
+                onChange={(e) => setDigest({ testDate: e.target.value })}
+                className="w-40"
+                aria-label="Digest test date"
+              />
+            </label>
             <Button size="sm" variant="secondary" onClick={sendDigestNow}>
               Send digest now
             </Button>
@@ -174,6 +184,11 @@ export function NotificationSettings() {
               {unreadCount} unread queued
               {digest.lastSentAt ? ` · last sent ${new Date(digest.lastSentAt).toLocaleString()}` : ""}
             </p>
+            {digest.testDate ? (
+              <p className="w-full text-xs text-muted-foreground">
+                Digest scheduled for {digest.testDate} at {digest.time}. Clear the date to resume the daily schedule.
+              </p>
+            ) : null}
           </div>
         ) : null}
       </div>

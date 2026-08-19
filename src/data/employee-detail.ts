@@ -114,3 +114,54 @@ export function employeeAttendanceSummary(id: string) {
     workingDays: 22,
   };
 }
+
+export type PayrollLine = { label: string; amount: number; kind: "earning" | "deduction" };
+
+export type EmployeePayroll = {
+  period: string;
+  gross: number;
+  earnings: PayrollLine[];
+  deductions: PayrollLine[];
+  totalEarnings: number;
+  totalDeductions: number;
+  net: number;
+};
+
+const money = (n: number) => Math.round(n);
+
+/** Deterministic pay slip breakdown derived from the employee record. */
+export function employeePayroll(employee: Employee, period = "August 2026"): EmployeePayroll {
+  const h = hash(employee.id);
+  const gross = money(Number(employee.salaryGross?.replace(/[^\d.]/g, "")) || 14000 + (h % 9) * 1000);
+  const allowance = money(Number(employee.allowance?.replace(/[^\d.]/g, "")) || gross * 0.1);
+  const overtime = money((h % 5) * 250);
+  const earnings: PayrollLine[] = [
+    { label: "Basic salary", amount: gross, kind: "earning" },
+    { label: "Allowances", amount: allowance, kind: "earning" },
+    { label: "Overtime", amount: overtime, kind: "earning" },
+  ];
+  const base = gross + allowance + overtime;
+  const social = employee.isInsured === false ? 0 : money(gross * 0.11);
+  const tax = money((base - social) * 0.1);
+  const advance = employeeAdvances(employee.id)
+    .filter((a) => a.status === "Active")
+    .reduce((sum, a) => sum + money(a.remaining / 4), 0);
+  const absence = money(employeeAttendanceSummary(employee.id).absent * (gross / 22));
+  const deductions: PayrollLine[] = [
+    { label: "Social insurance", amount: social, kind: "deduction" },
+    { label: "Income tax", amount: tax, kind: "deduction" },
+    { label: "Advance installment", amount: advance, kind: "deduction" },
+    { label: "Unpaid absence", amount: absence, kind: "deduction" },
+  ];
+  const totalEarnings = earnings.reduce((s, e) => s + e.amount, 0);
+  const totalDeductions = deductions.reduce((s, d) => s + d.amount, 0);
+  return {
+    period,
+    gross,
+    earnings,
+    deductions,
+    totalEarnings,
+    totalDeductions,
+    net: totalEarnings - totalDeductions,
+  };
+}

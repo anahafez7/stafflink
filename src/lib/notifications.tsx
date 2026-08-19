@@ -9,7 +9,13 @@ export type NotificationChannel = "attendance" | "leaves" | "documents";
 
 export type NotificationSettings = Record<NotificationChannel, boolean> & { quietHours: boolean };
 
-export type DigestSettings = { enabled: boolean; time: string; lastSentAt: string | null };
+export type DigestSettings = {
+  enabled: boolean;
+  time: string;
+  lastSentAt: string | null;
+  /** Optional YYYY-MM-DD used to test the digest on a specific day. */
+  testDate: string;
+};
 
 export type InboxItem = {
   id: string;
@@ -54,7 +60,7 @@ type Ctx = {
   sendDigestNow: () => void;
 };
 
-const digestDefaults: DigestSettings = { enabled: false, time: "08:00", lastSentAt: null };
+const digestDefaults: DigestSettings = { enabled: false, time: "08:00", lastSentAt: null, testDate: "" };
 
 const NotificationContext = createContext<Ctx | null>(null);
 
@@ -160,6 +166,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       trackEvent("notification_digest_changed", {
         enabled: next.enabled ?? null,
         time: next.time ?? null,
+        testDate: next.testDate ?? null,
       });
     },
     [digestKey],
@@ -226,7 +233,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const check = () => {
       const now = new Date();
       const [h, m] = digest.time.split(":").map(Number);
-      const due = new Date(now);
+      const due = digest.testDate ? new Date(`${digest.testDate}T00:00:00`) : new Date(now);
       due.setHours(h ?? 8, m ?? 0, 0, 0);
       if (now < due) return;
       const last = digest.lastSentAt ? new Date(digest.lastSentAt) : null;
@@ -236,7 +243,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     check();
     const t = setInterval(check, 60_000);
     return () => clearInterval(t);
-  }, [digest.enabled, digest.time, digest.lastSentAt, sendDigestNow]);
+  }, [digest.enabled, digest.time, digest.testDate, digest.lastSentAt, sendDigestNow]);
 
   const value = useMemo<Ctx>(
     () => ({
