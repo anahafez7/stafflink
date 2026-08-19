@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogIn, ShieldCheck } from "lucide-react";
+import { LogIn, ShieldCheck, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,16 @@ export function LoginScreen() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const result = signIn(email, password);
+    if (!result.ok) setError(result.error ?? "Sign in failed.");
+  };
+
+  const selfService = demoAccounts.find((a) => a.role === "employee");
+
+  const signInAsEmployee = () => {
+    if (!selfService) return;
+    setEmail(selfService.email);
+    setPassword(selfService.password);
+    const result = signIn(selfService.email, selfService.password);
     if (!result.ok) setError(result.error ?? "Sign in failed.");
   };
 
@@ -79,6 +89,23 @@ export function LoginScreen() {
               <span>Sign in</span>
             </Button>
           </form>
+
+          {selfService ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button type="button" variant="secondary" className="w-full" onClick={signInAsEmployee}>
+                <UserRound className="size-4" />
+                <span>Employee self-service sign-in</span>
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">
+                Punch in and out, upload your documents and view your own profile.
+              </p>
+            </div>
+          ) : null}
 
           <div className="surface-card space-y-2 p-4">
             <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
