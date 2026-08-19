@@ -215,7 +215,7 @@ function LeavesPage() {
     if (ids.length === 0) return;
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
-    const decided: LeaveRequest[] = [];
+    const decided = requests.filter((r) => ids.includes(r.id) && r.status !== status);
     setRequests((prev) =>
       prev.map((r) => {
         if (!ids.includes(r.id) || r.status === status) return r;
@@ -225,7 +225,7 @@ function LeavesPage() {
         if (r.status === "Approved" && status !== "Approved") {
           deltas.set(r.leaveType, (deltas.get(r.leaveType) ?? 0) - r.days);
         }
-        const next = {
+        return {
           ...r,
           status,
           decision:
@@ -233,17 +233,15 @@ function LeavesPage() {
               ? "Reopened · awaiting manager approval"
               : `${status} by ${user?.name ?? "Manager"} · ${stamp}`,
         };
-        decided.push(next);
-        return next;
       }),
     );
     // Push each decision into the notification inbox so approvals are visible there.
     decided.forEach((r) => {
-      if (r.status === "Pending") return;
+      if (status === "Pending") return;
       notify(
         "leaves",
-        `${r.type} ${r.status.toLowerCase()}`,
-        `${r.id} · ${r.period} (${r.days} day${r.days === 1 ? "" : "s"}) — ${r.decision}`,
+        `${r.type} ${status.toLowerCase()}`,
+        `${r.id} · ${r.period} (${r.days} day${r.days === 1 ? "" : "s"}) — ${status} by ${user?.name ?? "Manager"} · ${stamp}`,
         r.id,
       );
     });
