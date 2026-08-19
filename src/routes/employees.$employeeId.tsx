@@ -521,6 +521,7 @@ function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="location" className="space-y-4">
+          {null}
           <section className="surface-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
