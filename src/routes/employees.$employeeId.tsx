@@ -520,8 +520,105 @@ function EmployeeDetailPage() {
           </section>
         </TabsContent>
 
+        <TabsContent value="payroll" className="space-y-4">
+          <section className="surface-card flex flex-wrap items-end gap-3 p-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Pay period</p>
+              <Input
+                value={payPeriod}
+                onChange={(e) => setPayPeriod(e.target.value.slice(0, 40))}
+                className="mt-1 h-9 max-w-[14rem]"
+                aria-label="Pay period"
+              />
+            </div>
+            <div className="rounded-xl border border-border px-4 py-2 text-center">
+              <p className="text-[11px] uppercase text-muted-foreground">Earnings</p>
+              <p className="text-sm font-semibold">EGP {payroll.totalEarnings.toLocaleString()}</p>
+            </div>
+            <div className="rounded-xl border border-border px-4 py-2 text-center">
+              <p className="text-[11px] uppercase text-muted-foreground">Deductions</p>
+              <p className="text-sm font-semibold text-destructive">
+                −EGP {payroll.totalDeductions.toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-xl border border-brand/40 bg-brand/5 px-4 py-2 text-center">
+              <p className="text-[11px] uppercase text-muted-foreground">Net pay</p>
+              <p className="text-sm font-semibold">EGP {payroll.net.toLocaleString()}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const ok = printTableAsPdf(
+                    `Pay slip · ${payroll.period}`,
+                    `${employee.name} · ${employee.id} · ${employee.department}`,
+                    ["Component", "Type", "Amount (EGP)"],
+                    [
+                      ...payroll.earnings.map((l) => [l.label, "Earning", l.amount.toLocaleString()]),
+                      ...payroll.deductions.map((l) => [l.label, "Deduction", `−${l.amount.toLocaleString()}`]),
+                      ["Net pay", "Total", payroll.net.toLocaleString()],
+                    ],
+                  );
+                  if (!ok) toast.error("Allow pop-ups to generate the pay slip.");
+                }}
+              >
+                <Download className="size-4" />
+                <span>Generate pay slip</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  downloadCsv(`payslip-${employee.id}-${payroll.period.replace(/\s+/g, "-").toLowerCase()}.csv`, [
+                    ["Employee", employee.name],
+                    ["Period", payroll.period],
+                    [],
+                    ["Component", "Type", "Amount"],
+                    ...payroll.earnings.map((l) => [l.label, "Earning", l.amount]),
+                    ...payroll.deductions.map((l) => [l.label, "Deduction", -l.amount]),
+                    ["Net pay", "Total", payroll.net],
+                  ]);
+                  toast.success("Pay slip exported as CSV");
+                }}
+              >
+                CSV
+              </Button>
+            </div>
+          </section>
+
+          <section className="surface-card overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-secondary">
+                <TableRow>
+                  <TableHead>Component</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...payroll.earnings, ...payroll.deductions].map((line) => (
+                  <TableRow key={`${line.kind}-${line.label}`}>
+                    <TableCell className="font-medium">{line.label}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground capitalize">{line.kind}</TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${line.kind === "deduction" ? "text-destructive" : ""}`}
+                    >
+                      {line.kind === "deduction" ? "−" : ""}EGP {line.amount.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow>
+                  <TableCell className="font-semibold">Net pay</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{payroll.period}</TableCell>
+                  <TableCell className="text-right font-semibold tabular-nums">
+                    EGP {payroll.net.toLocaleString()}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </section>
+        </TabsContent>
+
         <TabsContent value="location" className="space-y-4">
-          {null}
           <section className="surface-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
