@@ -268,6 +268,7 @@ function EmployeeDetailPage() {
             <TabsTrigger value="custody">Custody</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="advances">Advance payments</TabsTrigger>
+            <TabsTrigger value="payroll">Payroll</TabsTrigger>
             <TabsTrigger value="location">Location</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
