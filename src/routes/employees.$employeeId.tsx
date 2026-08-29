@@ -3,10 +3,9 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft, Briefcase, Building2, CalendarDays, CheckCircle2, Clock, CreditCard,
   FileText, Mail, MapPin, Package, Phone, Wallet,
+  Crosshair, Download, Lock, Plus, QrCode, Tag, Upload, X, ChevronLeft, ChevronRight, Info, FileSpreadsheet,
 } from "lucide-react";
-import { Crosshair, Download, Lock, Plus, QrCode, Tag, Upload, X, ChevronLeft, ChevronRight, Info, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
-import { downloadCsv } from "@/lib/export";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
