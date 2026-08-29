@@ -80,32 +80,40 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
+import { useI18n } from "@/lib/i18n";
+
 function Dashboard() {
+  const { t, lang } = useI18n();
+
   return (
     <div className="space-y-5">
       <PageHeader
-        section="Dashboard"
-        title="Good evening, Hafez"
-        description="1,244 employees across 6 branches. Payroll for June closes in 3 days."
+        section={t("dashboard", "Dashboard")}
+        title={lang === "ar" ? "مساء الخير، حافظ" : "Good evening, Hafez"}
+        description={
+          lang === "ar"
+            ? "1,244 موظف عبر 6 فروع. إغلاق مسير رواتب شهر أغسطس خلال 3 أيام."
+            : "1,244 employees across 6 branches. Payroll for August closes in 3 days."
+        }
         actions={
           <>
             <Button variant="secondary">
               <Plus className="size-4" />
-              <span>Add employee</span>
+              <span>{t("addEmployee", "Add employee")}</span>
             </Button>
             <Button variant="outline" className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground">
               <UploadCloud className="size-4" />
-              <span>Import</span>
+              <span>{lang === "ar" ? "استيراد" : "Import"}</span>
             </Button>
           </>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total employees" value="1,244" delta="+38 this month" icon={Users} tone="brand" />
-        <StatCard label="Present today" value="1,155" delta="92.8% attendance" icon={UserCheck} tone="success" />
-        <StatCard label="Absent" value="42" delta="-6 vs yesterday" trend="down" icon={UserX} tone="danger" />
-        <StatCard label="Late arrivals" value="47" delta="+9 vs yesterday" icon={Clock} tone="warning" />
+        <StatCard label={t("totalEmployees", "Total employees")} value="1,244" delta={lang === "ar" ? "+38 هذا الشهر" : "+38 this month"} icon={Users} tone="brand" />
+        <StatCard label={t("presentToday", "Present today")} value="1,155" delta={lang === "ar" ? "نسبة الحضور 92.8%" : "92.8% attendance"} icon={UserCheck} tone="success" />
+        <StatCard label={t("absentToday", "Absent")} value="42" delta={lang === "ar" ? "-6 عن الأمس" : "-6 vs yesterday"} trend="down" icon={UserX} tone="danger" />
+        <StatCard label={t("lateToday", "Late arrivals")} value="47" delta={lang === "ar" ? "+9 عن الأمس" : "+9 vs yesterday"} icon={Clock} tone="warning" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -264,12 +272,12 @@ function Dashboard() {
         </section>
 
         <section className="surface-card p-5">
-          <h2 className="text-sm font-semibold">Recent activity</h2>
-          <ol className="mt-4 space-y-4 border-l border-border pl-4">
+          <h2 className="text-sm font-semibold">{t("recentActivity", "Recent activity")}</h2>
+          <ol className="mt-4 space-y-4 ltr:border-l rtl:border-r border-border ltr:pl-4 rtl:pr-4">
             {activities.map((a) => (
               <li key={a.who + a.what} className="relative">
                 <span
-                  className={`absolute -left-[21px] top-1.5 size-2.5 rounded-full ring-4 ring-surface ${
+                  className={`absolute ltr:-left-[21px] rtl:-right-[21px] top-1.5 size-2.5 rounded-full ring-4 ring-surface ${
                     a.tone === "success"
                       ? "bg-success"
                       : a.tone === "warning"
@@ -299,31 +307,35 @@ function Dashboard() {
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <Bell className="size-5 text-brand" />
-                  <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-surface bg-destructive" />
+                  <span className="absolute ltr:-right-0.5 rtl:-left-0.5 -top-0.5 size-2 rounded-full border-2 border-surface bg-destructive" />
                 </div>
-                <h2 className="text-base font-semibold">Notifications Center</h2>
+                <h2 className="text-base font-semibold">{lang === "ar" ? "مركز الإشعارات والتنبيهات" : "Notifications Center"}</h2>
                 <Badge variant="secondary" className="bg-secondary text-muted-foreground font-normal rounded-md px-1.5 py-0.5 text-[10px]">
-                  <Zap className="mr-1 size-3" /> Live
+                  <Zap className="me-1 size-3" /> {lang === "ar" ? "مباشر" : "Live"}
                 </Badge>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                0 pending leaves • 0 late • 263 absent today
+                {lang === "ar" ? "0 إجازات معلقة • 0 متأخرين • 42 غياب اليوم" : "0 pending leaves • 0 late • 42 absent today"}
               </p>
             </div>
             <Button variant="outline" size="sm" className="h-8 rounded-full text-xs font-normal">
-              <RefreshCcw className="mr-2 size-3" /> Refresh
+              <RefreshCcw className="me-2 size-3" /> {lang === "ar" ? "تحديث" : "Refresh"}
             </Button>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Badge className="bg-brand text-brand-foreground hover:bg-brand/90 px-3 py-1.5 text-xs rounded-full">
-              All <span className="ml-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">1</span>
+              {t("all", "All")} <span className="ms-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">1</span>
             </Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Pending leaves <span className="ml-1.5 text-muted-foreground">0</span></Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Late <span className="ml-1.5 text-muted-foreground">0</span></Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Absent <span className="ml-1.5 text-foreground font-medium">263</span></Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Check-ins <span className="ml-1.5 text-muted-foreground">0</span></Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">Check-outs <span className="ml-1.5 text-muted-foreground">0</span></Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">
+              {t("pendingLeaves", "Pending leaves")} <span className="ms-1.5 text-muted-foreground">0</span>
+            </Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">
+              {t("lateToday", "Late")} <span className="ms-1.5 text-muted-foreground">0</span>
+            </Badge>
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs rounded-full font-normal text-muted-foreground hover:text-foreground">
+              {t("absentToday", "Absent")} <span className="ms-1.5 text-foreground font-medium">42</span>
+            </Badge>
           </div>
 
           <div className="mt-6 cursor-pointer rounded-2xl border border-border p-4 flex items-center justify-between hover:bg-accent transition-colors">

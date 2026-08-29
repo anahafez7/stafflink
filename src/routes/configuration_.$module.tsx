@@ -384,7 +384,7 @@ function BalancesModule() {
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Total</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Used</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-center">Remaining</TableHead>
-              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-right">Action</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground uppercase text-end">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -406,7 +406,7 @@ function BalancesModule() {
                 <TableCell className="text-center">21</TableCell>
                 <TableCell className="text-center">0</TableCell>
                 <TableCell className="text-center text-emerald-500 font-medium">21</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   <Button variant="ghost" size="sm" className="h-8 rounded-full bg-secondary/50 text-xs">
                     <Edit2 className="size-3 mr-1" /> Edit
                   </Button>
@@ -746,7 +746,7 @@ function RequestsModule() {
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Duration</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Reason</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase">Status</TableHead>
-              <TableHead className="text-right"></TableHead>
+              <TableHead className="text-end"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -779,7 +779,7 @@ function RequestsModule() {
                     {req.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                       <Edit2 className="size-4" />

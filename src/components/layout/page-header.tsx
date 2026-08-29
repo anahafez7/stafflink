@@ -19,7 +19,7 @@ export function PageHeader({
         <Link to="/" className="hover:text-brand-foreground">
           StaffLink
         </Link>
-        <ChevronRight className="size-3" />
+        <ChevronRight className="size-3 rtl:rotate-180" />
         <span>{section}</span>
       </nav>
 

@@ -37,10 +37,13 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
+import { useI18n } from "@/lib/i18n";
+
 export function NotificationInbox() {
   const router = useRouter();
   const { inbox, archived, unreadCount, markRead, markUnread, setArchived, markAllRead, clearInbox } =
     useNotifications();
+  const { t, lang } = useI18n();
   const [filter, setFilter] = useState<NotificationChannel | "all">("all");
   const [view, setView] = useState<"inbox" | "archived">("inbox");
   const [query, setQuery] = useState("");
@@ -80,32 +83,32 @@ export function NotificationInbox() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Inbox className="size-4 text-primary" />
-          <h2 className="text-sm font-semibold">Notification inbox</h2>
+          <h2 className="text-sm font-semibold">{lang === "ar" ? "صندوق الإشعارات الواردة" : "Notification inbox"}</h2>
           {unreadCount > 0 && (
             <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
-              {unreadCount} unread
+              {unreadCount} {lang === "ar" ? "غير مقروء" : "unread"}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" onClick={markAllRead} disabled={unreadCount === 0}>
-            <CheckCheck className="size-4" />
-            <span>Mark all read</span>
+            <CheckCheck className="size-4 me-1.5" />
+            <span>{lang === "ar" ? "تحديد الكل كمقروء" : "Mark all read"}</span>
           </Button>
           <Button size="sm" variant="ghost" onClick={clearInbox} disabled={inbox.length + archived.length === 0}>
             <Trash2 className="size-4" />
-            <span className="sr-only">Clear inbox</span>
+            <span className="sr-only">{lang === "ar" ? "مسح الصندوق" : "Clear inbox"}</span>
           </Button>
         </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <Stat label="Permission" value={stats.permission ?? "unknown"} />
-        <Stat label="Open-through rate" value={`${stats.openRate}%`} hint={`${stats.opened}/${stats.shown} opened`} />
+        <Stat label={lang === "ar" ? "حالة الإذن" : "Permission"} value={stats.permission ?? "unknown"} />
+        <Stat label={lang === "ar" ? "معدل التفاعل والفتح" : "Open-through rate"} value={`${stats.openRate}%`} hint={`${stats.opened}/${stats.shown} ${lang === "ar" ? "تم فتحها" : "opened"}`} />
         <Stat
-          label="Deep-link success"
+          label={lang === "ar" ? "نجاح الروابط المباشرة" : "Deep-link success"}
           value={`${stats.deepLinkSuccess}%`}
-          hint={`${stats.deepLinks} targets resolved`}
+          hint={`${stats.deepLinks} ${lang === "ar" ? "عنصر تم الوصول إليه" : "targets resolved"}`}
         />
       </div>
 

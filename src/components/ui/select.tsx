@@ -5,8 +5,12 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
-const Select = SelectPrimitive.Root;
+const Select = ({ dir, ...props }: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => {
+  const { dir: i18nDir } = useI18n();
+  return <SelectPrimitive.Root dir={dir ?? i18nDir} {...props} />;
+};
 
 const SelectGroup = SelectPrimitive.Group;
 

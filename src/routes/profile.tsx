@@ -22,7 +22,10 @@ export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
 
+import { useI18n } from "@/lib/i18n";
+
 function PasswordChangeForm() {
+  const { lang } = useI18n();
   const [show, setShow] = useState(false);
   const [current, setCurrent] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -39,42 +42,42 @@ function PasswordChangeForm() {
   };
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); toast.success("Password updated successfully"); document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'})); }} className="space-y-4 pt-4">
+    <form onSubmit={(e) => { e.preventDefault(); toast.success(lang === "ar" ? "تم تحديث كلمة المرور بنجاح" : "Password updated successfully"); document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'})); }} className="space-y-4 pt-4">
       <div className="space-y-2">
-        <Label htmlFor="current">Current password</Label>
+        <Label htmlFor="current">{lang === "ar" ? "كلمة المرور الحالية" : "Current password"}</Label>
         <div className="relative">
           <Input id="current" type={show ? "text" : "password"} value={current} onChange={e => setCurrent(e.target.value)} required />
-          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
+          <Button type="button" variant="ghost" size="icon" className="absolute ltr:right-1 rtl:left-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </Button>
         </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="new">New password</Label>
+          <Label htmlFor="new">{lang === "ar" ? "كلمة المرور الجديدة" : "New password"}</Label>
           <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs font-normal" onClick={generatePassword}>
-            <Wand2 className="mr-1 size-3" />
-            Generate
+            <Wand2 className="me-1 size-3" />
+            {lang === "ar" ? "توليد تلقائي" : "Generate"}
           </Button>
         </div>
         <div className="relative">
           <Input id="new" type={show ? "text" : "password"} value={newPass} onChange={e => setNewPass(e.target.value)} required />
-          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
+          <Button type="button" variant="ghost" size="icon" className="absolute ltr:right-1 rtl:left-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </Button>
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirm">Confirm password</Label>
+        <Label htmlFor="confirm">{lang === "ar" ? "تأكيد كلمة المرور" : "Confirm password"}</Label>
         <div className="relative">
           <Input id="confirm" type={show ? "text" : "password"} value={confirm} onChange={e => setConfirm(e.target.value)} required />
-          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
+          <Button type="button" variant="ghost" size="icon" className="absolute ltr:right-1 rtl:left-1 top-1/2 -translate-y-1/2 size-7 text-muted-foreground" onClick={() => setShow(!show)}>
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </Button>
         </div>
       </div>
       <DialogFooter className="pt-4">
-        <Button type="submit">Save changes</Button>
+        <Button type="submit">{lang === "ar" ? "حفظ التغييرات" : "Save changes"}</Button>
       </DialogFooter>
     </form>
   );
@@ -82,19 +85,24 @@ function PasswordChangeForm() {
 
 function ProfilePage() {
   const { user } = useAuth();
+  const { t, lang } = useI18n();
 
   return (
     <div className="space-y-5">
-      <PageHeader section="Workspace" title="My Profile" description="Manage your personal and employment information" />
+      <PageHeader 
+        section={t("workspace", "Workspace")} 
+        title={t("myProfile", "My Profile")} 
+        description={lang === "ar" ? "إدارة وتحديث بياناتك الشخصية والوظيفية." : "Manage your personal and employment information"} 
+      />
 
       <section className="surface-card p-5">
-        <h2 className="text-sm font-semibold">Personal & Employment Info</h2>
+        <h2 className="text-sm font-semibold">{lang === "ar" ? "البيانات الشخصية والوظيفية" : "Personal & Employment Info"}</h2>
         <div className="mt-5 flex min-w-0 items-center gap-4">
           <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-brand/10 text-xl font-semibold text-brand">
             {user?.initials ?? "—"}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-lg font-medium">{user?.name ?? "Not signed in"}</p>
+            <p className="truncate text-lg font-medium">{user?.name ?? (lang === "ar" ? "لم يتم تسجيل الدخول" : "Not signed in")}</p>
             <p className="truncate text-sm text-muted-foreground">
               {user?.title} · {user?.email}
             </p>

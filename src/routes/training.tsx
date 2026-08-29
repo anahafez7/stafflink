@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, BookOpen, Video, ShieldCheck, GraduationCap, CheckCircle2, Edit2 } from "lucide-react";
+import { Plus, Search, BookOpen, Video, ShieldCheck, GraduationCap, CheckCircle2, Edit2, FileSpreadsheet } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,27 +38,77 @@ const courses = [
   { id: "TRN-103", title: "Workplace Harassment Policy", type: "Compliance", format: "Document", date: "Aug 01, 2026", duration: "45m", mandatory: true, icon: GraduationCap, status: "Draft" },
 ];
 
+import { useI18n } from "@/lib/i18n";
+import { downloadCsv } from "@/lib/export";
+import { toast } from "sonner";
+
 function TrainingPage() {
+  const { t, lang } = useI18n();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredCourses = courses.filter((course) =>
+    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleExportTraining = () => {
+    const headers = lang === "ar"
+      ? ["رمز الدورة", "الدورة التدريبية", "المجال / النوع", "الصيغة", "المدة", "إلزامي", "الحالة"]
+      : ["Course Code", "Course Title", "Type", "Format", "Duration", "Mandatory", "Status"];
+
+    const rows = filteredCourses.map((c) => [
+      c.id,
+      c.title,
+      c.type,
+      c.format,
+      c.duration,
+      c.mandatory ? (lang === "ar" ? "نعم" : "Yes") : (lang === "ar" ? "لا" : "No"),
+      c.status,
+    ]);
+
+    downloadCsv(`StaffLink_Training_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
+    toast.success(lang === "ar" ? "تم تصدير دليل الدورات التدريبية إلى Excel بنجاح" : "Training catalog exported to Excel successfully");
+  };
 
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        section="Workspace"
-        title="Training & LMS"
-        description="Manage the course catalog, mandatory compliance training, and certifications."
+        section={t("workspace", "Workspace")}
+        title={t("trainingTitle", "Training & LMS")}
+        description={
+          lang === "ar"
+            ? "إدارة دليل الدورات التدريبية، دورات الامتثال الإلزامية، والشهادات المعتمدة."
+            : "Manage the course catalog, mandatory compliance training, and certifications."
+        }
         actions={
-          <Button onClick={() => setIsAddOpen(true)} className="rounded-full bg-brand text-brand-foreground hover:bg-brand/90">
-            <Plus className="mr-2 size-4" /> Create Course
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportTraining}
+              className="rounded-full border-border bg-surface hover:bg-muted"
+            >
+              <FileSpreadsheet className="size-4 me-1.5 text-emerald-600" />
+              <span>{lang === "ar" ? "تصدير إلى Excel" : "Export to Excel"}</span>
+            </Button>
+            <Button onClick={() => setIsAddOpen(true)} className="rounded-full bg-brand text-brand-foreground hover:bg-brand/90">
+              <Plus className="me-2 size-4" /> {lang === "ar" ? "إنشاء دورة جديدة" : "Create Course"}
+            </Button>
+          </div>
         }
       />
 
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="Search course catalog..." className="pl-9 bg-surface rounded-full border-border/50" />
+          <Search className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={lang === "ar" ? "البحث في دليل الدورات..." : "Search course catalog..."} 
+            className="ltr:pl-9 rtl:pr-9 bg-surface rounded-full border-border/50" 
+          />
         </div>
       </div>
 
@@ -66,18 +116,18 @@ function TrainingPage() {
         <Table>
           <TableHeader className="bg-secondary/40">
             <TableRow>
-              <TableHead>Course ID</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Format</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Mandatory</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[120px]">{lang === "ar" ? "الرمز" : "Code"}</TableHead>
+              <TableHead>{lang === "ar" ? "الدورة التدريبية" : "Course"}</TableHead>
+              <TableHead>{t("category", "Type")}</TableHead>
+              <TableHead>{lang === "ar" ? "الصيغة" : "Format"}</TableHead>
+              <TableHead>{lang === "ar" ? "المدة" : "Duration"}</TableHead>
+              <TableHead>{lang === "ar" ? "إلزامي" : "Mandatory"}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead className="text-end">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {courses.map((course) => (
+            {filteredCourses.map((course) => (
               <TableRow key={course.id} className="hover:bg-muted/5">
                 <TableCell className="font-medium text-muted-foreground">{course.id}</TableCell>
                 <TableCell>
@@ -107,7 +157,7 @@ function TrainingPage() {
                     {course.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   <Button variant="ghost" size="icon" onClick={() => setEditingItem(course)} className="size-8 text-muted-foreground hover:text-foreground">
                     <Edit2 className="size-4" />
                   </Button>

@@ -58,17 +58,20 @@ const mockTasks = [
   },
 ];
 
+import { useI18n } from "@/lib/i18n";
+
 function TaskDetailsPage() {
   const { taskId } = useParams({ from: "/tasks_/$taskId" });
+  const { t, lang } = useI18n();
   
-  // Find task or use a default one if not found (e.g. for newly created ones that aren't in mock data yet)
+  // Find task or use a default one if not found
   const [task, setTask] = useState<any>(mockTasks.find((t) => t.id === taskId) || {
     id: taskId,
-    title: "New Assigned Task",
-    description: "Detailed description of the newly assigned task goes here.",
+    title: lang === "ar" ? "مهمة مسندة جديدة" : "New Assigned Task",
+    description: lang === "ar" ? "التفاصيل والملاحظات الخاصة بالمهمة المسندة." : "Detailed description of the newly assigned task goes here.",
     assignee: "Employee Name",
     location: "Location",
-    dueDate: "dd/mm/yyyy",
+    dueDate: "2026-08-18",
     estimatedTime: "1 hour",
     manager: "Omar Saleh",
     priority: "Medium",
@@ -117,37 +120,45 @@ function TaskDetailsPage() {
     "Canceled": "border-destructive/40 text-destructive",
   };
 
+  const statusTranslations: Record<string, string> = {
+    "Pending": "قيد الانتظار",
+    "In Progress": "قيد التنفيذ",
+    "Done": "مكتملة",
+    "Delayed": "متأخرة",
+    "Canceled": "ملغاة",
+  };
+
   return (
     <div className="space-y-5 pb-10">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="shrink-0" asChild>
           <Link to="/tasks">
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 rtl:rotate-180" />
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-muted-foreground">Tasks</p>
+          <p className="text-sm font-medium text-muted-foreground">{t("tasks", "Tasks")}</p>
           <h1 className="truncate text-xl font-semibold tracking-tight">{task.id}</h1>
         </div>
       </div>
 
       <PageHeader
-        section="Task Details"
+        section={lang === "ar" ? "تفاصيل المهمة" : "Task Details"}
         title={
           <span className="flex items-center gap-3">
             {task.title}
             {isOverdue && (
               <Badge variant="destructive" className="bg-destructive/10 text-destructive border-transparent text-sm">
-                Overdue
+                {lang === "ar" ? "متأخرة" : "Overdue"}
               </Badge>
             )}
           </span>
         }
-        description="Manage task details and track current progress."
+        description={lang === "ar" ? "إدارة تفاصيل المهمة ومتابعة نسبة الإنجاز والملفات." : "Manage task details and track current progress."}
         actions={
           <div className="flex gap-2">
             <Button variant="secondary" className="bg-white text-slate-900 hover:bg-white/90" onClick={() => setEditDialogOpen(true)}>
-              Edit task
+              {lang === "ar" ? "تعديل المهمة" : "Edit task"}
             </Button>
             <Button 
               variant="secondary" 
@@ -157,7 +168,7 @@ function TaskDetailsPage() {
                 setTask({ ...task, status: "Done" });
               }}
             >
-              Complete task
+              {lang === "ar" ? "إكمال المهمة" : "Complete task"}
             </Button>
           </div>
         }
@@ -166,27 +177,27 @@ function TaskDetailsPage() {
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-5">
           <section className="surface-card p-5">
-            <h2 className="text-sm font-semibold mb-4">Description</h2>
+            <h2 className="text-sm font-semibold mb-4">{lang === "ar" ? "الوصف" : "Description"}</h2>
             <p className="text-sm text-foreground/90 whitespace-pre-wrap">{task.description}</p>
           </section>
 
           <section className="surface-card p-5">
-            <h2 className="text-sm font-semibold mb-4">Task Details</h2>
+            <h2 className="text-sm font-semibold mb-4">{lang === "ar" ? "بيانات المهمة" : "Task Details"}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="size-3" /> Location</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><MapPin className="size-3" /> {t("branch", "Location")}</span>
                 <p className="text-sm font-medium">{task.location}</p>
               </div>
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Calendar className="size-3" /> Due Date</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Calendar className="size-3" /> {lang === "ar" ? "تاريخ التسليم" : "Due Date"}</span>
                 <p className="text-sm font-medium">{task.dueDate}</p>
               </div>
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="size-3" /> Estimated Time</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="size-3" /> {lang === "ar" ? "الوقت المقدر" : "Estimated Time"}</span>
                 <p className="text-sm font-medium">{task.estimatedTime}</p>
               </div>
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><CheckCircle2 className="size-3" /> Status</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><CheckCircle2 className="size-3" /> {t("status", "Status")}</span>
                 <Select 
                   value={status} 
                   onValueChange={(val) => {
@@ -198,16 +209,16 @@ function TaskDetailsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Done">Done</SelectItem>
-                    <SelectItem value="Delayed">Delayed</SelectItem>
-                    <SelectItem value="Canceled">Canceled</SelectItem>
+                    <SelectItem value="Pending">{lang === "ar" ? "قيد الانتظار" : "Pending"}</SelectItem>
+                    <SelectItem value="In Progress">{lang === "ar" ? "قيد التنفيذ" : "In Progress"}</SelectItem>
+                    <SelectItem value="Done">{lang === "ar" ? "مكتملة" : "Done"}</SelectItem>
+                    <SelectItem value="Delayed">{lang === "ar" ? "متأخرة" : "Delayed"}</SelectItem>
+                    <SelectItem value="Canceled">{lang === "ar" ? "ملغاة" : "Canceled"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Target className="size-3" /> Priority</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Target className="size-3" /> {t("priority", "Priority")}</span>
                 <Select 
                   value={task.priority} 
                   onValueChange={(val: any) => {
@@ -218,9 +229,9 @@ function TaskDetailsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="High">{t("high", "High")}</SelectItem>
+                    <SelectItem value="Medium">{t("medium", "Medium")}</SelectItem>
+                    <SelectItem value="Low">{t("low", "Low")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -229,25 +240,25 @@ function TaskDetailsPage() {
 
           <section className="surface-card p-5">
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
-              <Activity className="size-4" /> Activity Timeline
+              <Activity className="size-4" /> {lang === "ar" ? "سجل الأنشطة والمتابعة" : "Activity Timeline"}
             </h2>
-            <div className="space-y-4 border-l-2 border-border ml-2 pl-4">
+            <div className="space-y-4 ltr:border-l-2 rtl:border-r-2 border-border ltr:ml-2 rtl:mr-2 ltr:pl-4 rtl:pr-4">
               <div className="relative">
-                <span className="absolute -left-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-brand" />
-                <p className="text-sm font-medium">Task assigned</p>
-                <p className="text-xs text-muted-foreground mt-0.5">by Manager • Aug 12, 10:30 AM</p>
+                <span className="absolute ltr:-left-[21px] rtl:-right-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-brand" />
+                <p className="text-sm font-medium">{lang === "ar" ? "تم إسناد المهمة" : "Task assigned"}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{lang === "ar" ? "بواسطة المدير المسؤول • 12 أغسطس، 10:30 ص" : "by Manager • Aug 12, 10:30 AM"}</p>
               </div>
               <div className="relative">
-                <span className="absolute -left-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-secondary" />
-                <p className="text-sm font-medium">Status changed to In Progress</p>
-                <p className="text-xs text-muted-foreground mt-0.5">by {task.assignee} • Aug 13, 09:15 AM</p>
+                <span className="absolute ltr:-left-[21px] rtl:-right-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-secondary" />
+                <p className="text-sm font-medium">{lang === "ar" ? "تغيرت الحالة إلى: قيد التنفيذ" : "Status changed to In Progress"}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{lang === "ar" ? `بواسطة ${task.assignee} • 13 أغسطس، 09:15 ص` : `by ${task.assignee} • Aug 13, 09:15 AM`}</p>
               </div>
               <div className="relative">
-                <span className="absolute -left-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-secondary" />
+                <span className="absolute ltr:-left-[21px] rtl:-right-[21px] top-1 size-2.5 rounded-full ring-4 ring-surface bg-secondary" />
                 <p className="text-sm font-medium flex items-center gap-1.5">
-                  <MessageSquare className="size-3" /> Note added
+                  <MessageSquare className="size-3" /> {lang === "ar" ? "تمت إضافة ملاحظة" : "Note added"}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">"Started working on the initial draft." • Aug 13, 02:00 PM</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{lang === "ar" ? `"تم البدء في إعداد المسودة الأولى." • 13 أغسطس، 02:00 م` : `"Started working on the initial draft." • Aug 13, 02:00 PM`}</p>
               </div>
             </div>
           </section>
@@ -255,7 +266,7 @@ function TaskDetailsPage() {
 
         <div className="space-y-5">
           <section className="surface-card p-5">
-            <h2 className="text-sm font-semibold mb-4">Assignee</h2>
+            <h2 className="text-sm font-semibold mb-4">{lang === "ar" ? "الموظف المكلف" : "Assignee"}</h2>
             <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
               <Avatar className="size-10">
                 <AvatarFallback className="bg-brand/10 text-brand">
@@ -271,7 +282,7 @@ function TaskDetailsPage() {
 
           <section className="surface-card p-5">
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
-              <FileText className="size-4" /> Attached Docs
+              <FileText className="size-4" /> {lang === "ar" ? "المستندات المرفقة" : "Attached Docs"}
             </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-secondary/20 transition-colors">
@@ -303,7 +314,7 @@ function TaskDetailsPage() {
                 </Button>
               </div>
               <Button variant="outline" className="w-full text-xs h-8 mt-2 border-dashed">
-                + Upload document
+                {lang === "ar" ? "+ رفع مستند جديد" : "+ Upload document"}
               </Button>
             </div>
           </section>

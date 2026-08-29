@@ -36,56 +36,80 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type ModuleKey } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 const workspace = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
-  { title: "HR", url: "/hr", icon: Users, module: "hr" },
-  { title: "Attendance", url: "/attendance", icon: Fingerprint, module: "attendance" },
-  { title: "Tasks", url: "/tasks", icon: Target, module: "tasks" },
-  { title: "Payroll", url: "/payroll", icon: Wallet, module: "payroll" },
-  { title: "Recruitment", url: "/recruitment", icon: UserSearch, module: "recruitment" },
-  { title: "Performance", url: "/performance", icon: Target, module: "performance" },
-  { title: "Documents", url: "/documents", icon: FolderOpen, module: "documents" },
-  { title: "Attendance", url: "/self-service", icon: UserCog, module: "self-service" },
-  { title: "Leaves", url: "/leaves", icon: CalendarDays, module: "self-service" },
-  { title: "My Profile", url: "/profile", icon: User, module: "self-service" },
-  { title: "Onboarding", url: "/onboarding", icon: UserPlus, module: "onboarding" },
-  { title: "Expenses", url: "/expenses", icon: Receipt, module: "expenses" },
-  { title: "Assets", url: "/assets", icon: Laptop, module: "assets" },
-  { title: "Disciplinary", url: "/disciplinary", icon: AlertOctagon, module: "disciplinary" },
-  { title: "Training", url: "/training", icon: GraduationCap, module: "training" },
-  { title: "Engagement", url: "/engagement", icon: HeartHandshake, module: "engagement" },
-  { title: "Analytics", url: "/analytics", icon: BarChart3, module: "analytics" },
+  { key: "dashboard", defaultTitle: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
+  { key: "hr", defaultTitle: "HR", url: "/hr", icon: Users, module: "hr" },
+  { key: "attendance", defaultTitle: "Attendance", url: "/attendance", icon: Fingerprint, module: "attendance" },
+  { key: "tasks", defaultTitle: "Tasks", url: "/tasks", icon: Target, module: "tasks" },
+  { key: "payroll", defaultTitle: "Payroll", url: "/payroll", icon: Wallet, module: "payroll" },
+  { key: "recruitment", defaultTitle: "Recruitment", url: "/recruitment", icon: UserSearch, module: "recruitment" },
+  { key: "performance", defaultTitle: "Performance", url: "/performance", icon: Target, module: "performance" },
+  { key: "documents", defaultTitle: "Documents", url: "/documents", icon: FolderOpen, module: "documents" },
+  { key: "selfService", defaultTitle: "Self Service", url: "/self-service", icon: UserCog, module: "self-service" },
+  { key: "leaves", defaultTitle: "Leaves", url: "/leaves", icon: CalendarDays, module: "self-service" },
+  { key: "myProfile", defaultTitle: "My Profile", url: "/profile", icon: User, module: "self-service" },
+  { key: "onboarding", defaultTitle: "Onboarding", url: "/onboarding", icon: UserPlus, module: "onboarding" },
+  { key: "expenses", defaultTitle: "Expenses", url: "/expenses", icon: Receipt, module: "expenses" },
+  { key: "assets", defaultTitle: "Assets", url: "/assets", icon: Laptop, module: "assets" },
+  { key: "disciplinary", defaultTitle: "Disciplinary", url: "/disciplinary", icon: AlertOctagon, module: "disciplinary" },
+  { key: "training", defaultTitle: "Training", url: "/training", icon: GraduationCap, module: "training" },
+  { key: "engagement", defaultTitle: "Engagement", url: "/engagement", icon: HeartHandshake, module: "engagement" },
+  { key: "analytics", defaultTitle: "Analytics", url: "/analytics", icon: BarChart3, module: "analytics" },
 ] as const;
 
 const administration = [
-  { title: "Settings", url: "/settings", icon: Settings, module: "settings" },
-  { title: "Configuration", url: "/configuration", icon: Settings2, module: "settings" },
-  { title: "Users & Permissions", url: "/users", icon: ShieldCheck, module: "users" },
+  { key: "settings", defaultTitle: "Settings", url: "/settings", icon: Settings, module: "settings" },
+  { key: "configuration", defaultTitle: "Configuration", url: "/configuration", icon: Settings2, module: "settings" },
+  { key: "usersAndPermissions", defaultTitle: "Users & Permissions", url: "/users", icon: ShieldCheck, module: "users" },
 ] as const;
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { can, user } = useAuth();
+  const { t, dir } = useI18n();
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
+  const getItemLabel = (item: { key: string; defaultTitle: string }) => {
+    if (item.key === "hr" && user?.role === "manager") {
+      return t("myTeam", "My Team");
+    }
+    return t(item.key, item.defaultTitle);
+  };
+
   return (
-    <Sidebar collapsible="icon" className="border-sidebar-border">
-      <SidebarHeader className="px-3 py-4">
-        <Link to="/" className="flex items-center gap-3">
-          <span className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <img src="/logo.png" alt="StaffLink" className="w-full h-auto object-contain object-left bg-white px-2 py-1 rounded-md" />
-            <span className="mt-1 block truncate text-[11px] text-sidebar-foreground/60">
-              Enterprise HRMS
-            </span>
+    <Sidebar side={dir === "rtl" ? "right" : "left"} collapsible="icon" className="border-sidebar-border">
+      <SidebarHeader className="p-3.5 pb-2">
+        <Link to="/" className="flex flex-col items-center w-full group/logo transition-all">
+          <div className="w-full bg-white rounded-xl p-2.5 shadow-sm border border-border/30 flex items-center justify-center group-data-[collapsible=icon]:p-1.5 transition-all">
+            <img
+              src="/logo.png"
+              alt="StaffLink"
+              className="w-full h-auto max-h-[68px] object-contain group-data-[collapsible=icon]:max-h-8"
+            />
+          </div>
+          <span className="mt-2 block truncate text-[12px] font-semibold text-sidebar-foreground/80 tracking-wide group-data-[collapsible=icon]:hidden">
+            Enterprise HRMS
           </span>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
         {[
-          { label: "Workspace", items: workspace.filter((i) => can(i.module as ModuleKey)) },
-          { label: "Administration", items: administration.filter((i) => can(i.module as ModuleKey)) },
+          { 
+            label: t("workspace", "Workspace"), 
+            items: workspace.filter((i) => {
+              if (user?.role === "admin" && ["/self-service", "/leaves", "/profile"].includes(i.url)) {
+                return false;
+              }
+              return can(i.module as ModuleKey);
+            }) 
+          },
+          { 
+            label: t("administration", "Administration"), 
+            items: administration.filter((i) => can(i.module as ModuleKey)) 
+          },
         ]
           .filter((group) => group.items.length > 0)
           .map((group) => (
@@ -95,16 +119,19 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title === "HR" && user?.role === "manager" ? "My Team" : item.title}>
-                      <Link to={item.url} className="flex items-center gap-3">
-                        <item.icon className="size-4 shrink-0" />
-                        <span className="truncate">{item.title === "HR" && user?.role === "manager" ? "My Team" : item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {group.items.map((item) => {
+                  const label = getItemLabel(item);
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={label}>
+                        <Link to={item.url} className="flex items-center gap-3">
+                          <item.icon className="size-4 shrink-0" />
+                          <span className="truncate">{label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -113,7 +140,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:hidden">
         <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/40 p-3 text-center">
-          <p className="text-xs text-sidebar-foreground/70 mb-1">Developer</p>
+          <p className="text-xs text-sidebar-foreground/70 mb-1">{t("developer", "Developer")}</p>
           <a href="https://odooteams.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-sidebar-foreground hover:underline">
             Mr. Hafez Rahim
           </a>

@@ -43,11 +43,14 @@ const troubleshooting = [
   "Turn off Quiet hours below if alerts stop between 22:00 and 07:00.",
 ];
 
+import { useI18n } from "@/lib/i18n";
+
 /** Per-user push notification preferences, permission status and the manual install action. */
 export function NotificationSettings() {
   const { settings, setSetting, permission, requestPermission, notify, digest, setDigest, sendDigestNow, unreadCount } =
     useNotifications();
   const { canInstall, installed, promptInstall } = useInstall();
+  const { t, lang } = useI18n();
   const [guideOpen, setGuideOpen] = useState(false);
 
   const status = statusMeta[permission];
@@ -60,11 +63,18 @@ export function NotificationSettings() {
 
   const sendTest = () => {
     if (permission !== "granted") {
-      toast.info("Enable push permission first to send a test alert.");
+      toast.info(lang === "ar" ? "يرجى تفعيل إذن الإشعارات أولاً لإرسال تنبيه تجريبي." : "Enable push permission first to send a test alert.");
       return;
     }
     notify("attendance", "StaffLink test alert", "Notifications are working on this device.");
-    toast.success("Test notification sent.");
+    toast.success(lang === "ar" ? "تم إرسال إشعار تجريبي بنجاح." : "Test notification sent.");
+  };
+
+  const channelTranslations: Record<string, { label: string; hint: string }> = {
+    "attendance": { label: "الحضور والانصراف", hint: "تنبيهات فورية عند تسجيل البصمة أو التأخير" },
+    "leaves": { label: "الإجازات والطلبات", hint: "تحديثات عند اعتماد أو رفض طلبات الإجازة" },
+    "documents": { label: "المستندات والعقود", hint: "تنبيهات قبل انتهاء صلاحية الوثائق بـ 30 يوماً" },
+    "announcements": { label: "التعاميم والأخبار", hint: "إعلانات الإدارة والقرارات المؤسسية العامة" },
   };
 
   return (
@@ -74,7 +84,7 @@ export function NotificationSettings() {
           <BellRing className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">Notifications &amp; app</h2>
+          <h2 className="text-sm font-semibold">{lang === "ar" ? "الإشعارات وتطبيق الهاتف" : "Notifications & app"}</h2>
           <p className="text-xs text-muted-foreground">{status.hint}</p>
         </div>
         <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs ${status.tone}`}>
@@ -82,11 +92,11 @@ export function NotificationSettings() {
         </span>
         {installed ? (
           <span className="inline-flex items-center gap-1 rounded-lg border border-success/40 px-2 py-1 text-xs text-success">
-            <Smartphone className="size-3.5" /> Installed
+            <Smartphone className="size-3.5" /> {lang === "ar" ? "مثبت" : "Installed"}
           </span>
         ) : (
           <Button size="sm" variant="outline" onClick={install}>
-            <Download className="size-4" /> {canInstall ? "Install app" : "How to install"}
+            <Download className="size-4 me-1.5" /> {canInstall ? (lang === "ar" ? "تثبيت التطبيق" : "Install app") : (lang === "ar" ? "طريقة التثبيت" : "How to install")}
           </Button>
         )}
       </div>
@@ -94,19 +104,19 @@ export function NotificationSettings() {
       <div className="mt-4 rounded-xl border border-border p-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className="min-w-0 flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Permission &amp; troubleshooting
+            {lang === "ar" ? "الأذونات واستكشاف الأخطاء" : "Permission & troubleshooting"}
           </p>
           {permission !== "unsupported" ? (
             <Button size="sm" variant="secondary" onClick={requestPermission}>
-              <RefreshCw className="size-4" /> {permission === "granted" ? "Re-check" : "Request permission"}
+              <RefreshCw className="size-4 me-1.5" /> {permission === "granted" ? (lang === "ar" ? "إعادة الفحص" : "Re-check") : (lang === "ar" ? "طلب الإذن" : "Request permission")}
             </Button>
           ) : null}
           <Button size="sm" variant="ghost" onClick={sendTest}>
-            Send test
+            {lang === "ar" ? "إرسال اختبار" : "Send test"}
           </Button>
         </div>
         {permission !== "granted" ? (
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+          <ul className="mt-3 list-disc space-y-1 ltr:pl-5 rtl:pr-5 text-xs text-muted-foreground">
             {troubleshooting.map((t) => (
               <li key={t}>{t}</li>
             ))}
@@ -115,23 +125,26 @@ export function NotificationSettings() {
       </div>
 
       <ul className="mt-4 divide-y divide-border">
-        {channelMeta.map((c) => (
-          <li key={c.key} className="flex items-center justify-between gap-4 py-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{c.label}</p>
-              <p className="truncate text-xs text-muted-foreground">{c.hint}</p>
-            </div>
-            <Switch
-              checked={settings[c.key]}
-              onCheckedChange={(v) => setSetting(c.key, v)}
-              aria-label={c.label}
-            />
-          </li>
-        ))}
+        {channelMeta.map((c) => {
+          const trans = (lang === "ar" ? channelTranslations[c.key] : null) ?? { label: c.label, hint: c.hint };
+          return (
+            <li key={c.key} className="flex items-center justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{trans.label}</p>
+                <p className="truncate text-xs text-muted-foreground">{trans.hint}</p>
+              </div>
+              <Switch
+                checked={settings[c.key]}
+                onCheckedChange={(v) => setSetting(c.key, v)}
+                aria-label={trans.label}
+              />
+            </li>
+          );
+        })}
         <li className="flex items-center justify-between gap-4 py-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Quiet hours</p>
-            <p className="truncate text-xs text-muted-foreground">Mute notifications between 22:00 and 07:00</p>
+            <p className="truncate text-sm font-medium">{lang === "ar" ? "ساعات الهدوء" : "Quiet hours"}</p>
+            <p className="truncate text-xs text-muted-foreground">{lang === "ar" ? "كتم الإشعارات تلقائياً بين الساعة 10:00 مساءً و 07:00 صباحاً" : "Mute notifications between 22:00 and 07:00"}</p>
           </div>
           <Switch
             checked={settings.quietHours}

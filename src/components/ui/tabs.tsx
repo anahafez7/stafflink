@@ -2,8 +2,23 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>
+>(({ className, dir, ...props }, ref) => {
+  const { dir: i18nDir } = useI18n();
+  return (
+    <TabsPrimitive.Root
+      ref={ref}
+      dir={dir ?? i18nDir}
+      className={className}
+      {...props}
+    />
+  );
+});
+Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,

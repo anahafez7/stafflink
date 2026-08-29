@@ -29,8 +29,11 @@ interface NewTaskDialogProps {
   initialData?: Task;
 }
 
+import { useI18n } from "@/lib/i18n";
+
 export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTaskDialogProps) {
   const { user } = useAuth();
+  const { t, lang } = useI18n();
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
   const [location, setLocation] = useState<string>(initialData?.location || "");
@@ -45,13 +48,9 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
       setDescription(initialData?.description || "");
       setLocation(initialData?.location || "");
       setAssignee(initialData?.assignee || "");
-      // Convert "15-08-2026" to "2026-08-15" for input type="date" if needed, 
-      // but if the data is already in YYYY-MM-DD or we just rely on string, let's keep it simple.
-      // Wait, mock data dueDate is "15-08-2026" which is DD-MM-YYYY, HTML date input needs YYYY-MM-DD.
-      // I'll just set it as is and let the user re-pick if they want, or try to format it.
-      // I'll just set it as is for now.
       setDueDate(initialData?.dueDate || "");
       setEstimatedTime(initialData?.estimatedTime || "");
+      setPriority(initialData?.priority || "Medium");
     }
   }, [open, initialData]);
 
@@ -63,7 +62,7 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !assignee || !location || !dueDate) {
-      toast.error("Please fill in all required fields.");
+      toast.error(lang === "ar" ? "يرجى تعبئة جميع الحقول المطلوبة." : "Please fill in all required fields.");
       return;
     }
 
@@ -81,7 +80,11 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
     };
 
     onSave(newTask);
-    toast.success(initialData ? "Task updated successfully!" : "Task assigned successfully!");
+    toast.success(
+      initialData 
+        ? (lang === "ar" ? "تم تحديث المهمة بنجاح!" : "Task updated successfully!") 
+        : (lang === "ar" ? "تم إسناد المهمة بنجاح!" : "Task assigned successfully!")
+    );
     handleClose();
   };
 
@@ -100,43 +103,47 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
     <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-md sm:rounded-2xl">
         <DialogHeader>
-          <DialogTitle>{initialData ? "Edit Task" : "Assign New Task"}</DialogTitle>
+          <DialogTitle>
+            {initialData 
+              ? (lang === "ar" ? "تعديل المهمة" : "Edit Task") 
+              : (lang === "ar" ? "إسناد مهمة جديدة" : "Assign New Task")}
+          </DialogTitle>
         </DialogHeader>
 
         <form id="new-task-form" onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Task Title *</Label>
+            <Label htmlFor="title">{lang === "ar" ? "عنوان المهمة *" : "Task Title *"}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Conduct site audit"
+              placeholder={lang === "ar" ? "مثال: مراجعة تقارير الفرع" : "e.g. Conduct site audit"}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{lang === "ar" ? "الوصف والتفاصيل" : "Description"}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide details about the task..."
+              placeholder={lang === "ar" ? "أدخل تفاصيل ومحددات المهمة..." : "Provide details about the task..."}
               className="resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Location *</Label>
+              <Label>{lang === "ar" ? "الفرع / الموقع *" : "Location *"}</Label>
               <Select
                 value={location}
                 onValueChange={(val) => {
                   setLocation(val);
-                  setAssignee(""); // Reset assignee when location changes
+                  setAssignee("");
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select branch" />
+                  <SelectValue placeholder={lang === "ar" ? "اختر الفرع" : "Select branch"} />
                 </SelectTrigger>
                 <SelectContent>
                   {branches.map((b) => (
@@ -149,15 +156,15 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
             </div>
 
             <div className="space-y-2">
-              <Label>Assignee *</Label>
+              <Label>{lang === "ar" ? "الموظف المكلف *" : "Assignee *"}</Label>
               <Select value={assignee} onValueChange={setAssignee} disabled={!location}>
                 <SelectTrigger>
-                  <SelectValue placeholder={location ? "Select employee" : "Select location first"} />
+                  <SelectValue placeholder={location ? (lang === "ar" ? "اختر الموظف" : "Select employee") : (lang === "ar" ? "حدد الفرع أولاً" : "Select location first")} />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredEmployees.length === 0 ? (
                     <SelectItem value="none" disabled>
-                      No employees in {location}
+                      {lang === "ar" ? `لا يوجد موظفون في ${location}` : `No employees in ${location}`}
                     </SelectItem>
                   ) : (
                     filteredEmployees.map((e) => (
@@ -173,7 +180,7 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date *</Label>
+              <Label htmlFor="dueDate">{lang === "ar" ? "تاريخ التسليم *" : "Due Date *"}</Label>
               <Input
                 id="dueDate"
                 type="date"
@@ -183,37 +190,37 @@ export function NewTaskDialog({ open, onOpenChange, onSave, initialData }: NewTa
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="estimatedTime">Estimated Time</Label>
+              <Label htmlFor="estimatedTime">{lang === "ar" ? "الوقت المقدر" : "Estimated Time"}</Label>
               <Input
                 id="estimatedTime"
                 value={estimatedTime}
                 onChange={(e) => setEstimatedTime(e.target.value)}
-                placeholder="e.g. 2 hours, 3 days"
+                placeholder={lang === "ar" ? "مثال: 4 ساعات" : "e.g. 2 hours, 3 days"}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Priority</Label>
+            <Label>{t("priority", "Priority")}</Label>
             <Select value={priority} onValueChange={(v: any) => setPriority(v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="High">{t("high", "High")}</SelectItem>
+                <SelectItem value="Medium">{t("medium", "Medium")}</SelectItem>
+                <SelectItem value="Low">{t("low", "Low")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </form>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {lang === "ar" ? "إلغاء" : "Cancel"}
           </Button>
           <Button type="submit" form="new-task-form">
-            {initialData ? "Save Changes" : "Assign Task"}
+            {initialData ? (lang === "ar" ? "حفظ التغييرات" : "Save Changes") : (lang === "ar" ? "إسناد المهمة" : "Assign Task")}
           </Button>
         </DialogFooter>
       </DialogContent>

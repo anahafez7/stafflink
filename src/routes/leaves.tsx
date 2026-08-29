@@ -46,6 +46,7 @@ import { useAuth } from "@/lib/auth";
 import { useBadges } from "@/lib/badges";
 import { useNotifications } from "@/lib/notifications";
 import { useDeepLinkTarget } from "@/lib/deep-link";
+import { useI18n } from "@/lib/i18n";
 import {
   announcements,
   attendanceHistory,
@@ -103,6 +104,7 @@ const initialDevices = [
 ];
 
 function LeavesPage() {
+  const { t, lang } = useI18n();
   const { user } = useAuth();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
@@ -164,42 +166,47 @@ function LeavesPage() {
     toast.info("You already completed today's shift.");
   };
 
-  const submitLeave = () => {
-    if (!leaveFrom || !leaveTo) {
-      toast.error("Pick a start and end date.");
-      return;
-    }
-    if (leaveReason.trim().length < 5) {
-      toast.error("Add a short reason (at least 5 characters).");
-      return;
-    }
+  const calculateDays = () => {
+    if (!leaveFrom || !leaveTo) return 0;
     const start = new Date(leaveFrom);
     const end = new Date(leaveTo);
-    if (end < start) {
-      toast.error("End date must be after the start date.");
+    if (end < start) return 0;
+    const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diff);
+  };
+
+  const submitLeave = () => {
+    const days = calculateDays();
+    if (days <= 0) {
+      toast.error(lang === "ar" ? "يرجى تحديد تواريخ إجازة صحيحة" : "Pick a valid date range for your leave.");
       return;
     }
-    const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
-    const balance = balances.find((b) => b.type === leaveType);
-    if (balance && balance.used + days > balance.total) {
-      toast.error(`Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`);
+    const currentBal = balances.find((b) => b.type === leaveType);
+    const available = currentBal ? currentBal.total - currentBal.used : 0;
+    if (days > available) {
+      toast.error(
+        lang === "ar"
+          ? `رصيدك غير كافٍ. المتاح ${available} يوم بينما طلبت ${days} يوم.`
+          : `Insufficient balance: ${available} days available, ${days} requested.`,
+      );
       return;
     }
-    const remaining = balance ? balance.total - balance.used : 0;
-    const id = `REQ-${String(3410 + requests.length)}`;
+
+    const nextId = `LR-${2026}-${String(requests.length + 1).padStart(3, "0")}`;
+    const periodStr = `${leaveFrom} → ${leaveTo}`;
     setRequests((prev) => [
       {
-        id,
+        id: nextId,
         type: `${leaveType} leave`,
         leaveType,
-        period: `${leaveFrom} → ${leaveTo}`,
-        days,
+        period: periodStr,
+        submitted: new Date().toISOString().slice(0, 10),
         status: "Pending",
-        reason: leaveReason.trim(),
-        submitted: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-        balanceBefore: remaining,
-        balanceAfter: remaining - days,
-        decision: "Awaiting manager approval",
+        days,
+        balanceBefore: available,
+        balanceAfter: available - days,
+        reason: leaveReason || (lang === "ar" ? "طلب إجازة دورية" : "Standard leave request"),
+        decision: lang === "ar" ? "في انتظار اعتماد المدير" : "Awaiting manager approval",
       },
       ...prev,
     ]);
@@ -208,7 +215,11 @@ function LeavesPage() {
     setLeaveTo("");
     setLeaveReason("");
     setLeaveStep(1);
-    toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
+    toast.success(
+      lang === "ar"
+        ? `تم تقديم طلب إجازة ${leaveType} · ${days} يوم`
+        : `${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`,
+    );
   };
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
@@ -230,8 +241,8 @@ function LeavesPage() {
           status,
           decision:
             status === "Pending"
-              ? "Reopened · awaiting manager approval"
-              : `${status} by ${user?.name ?? "Manager"} · ${stamp}`,
+              ? lang === "ar" ? "أعيد فتح الطلب · بانتظار الاعتماد" : "Reopened · awaiting manager approval"
+              : `${status === "Approved" ? (lang === "ar" ? "تم الاعتماد" : "Approved") : (lang === "ar" ? "تم الرفض" : "Rejected")} ${lang === "ar" ? "بواسطة" : "by"} ${user?.name ?? "Manager"} · ${stamp}`,
         };
       }),
     );
@@ -253,30 +264,6 @@ function LeavesPage() {
     );
   };
 
-  const attendanceRows = () =>
-    myPunchLog.map((d) => [d.day, d.in, d.out, d.hours, d.state] as (string | number)[]);
-
-  const exportCsv = () => {
-    downloadCsv("stafflink-weekly-attendance.csv", [
-      ["Day", "Check in", "Check out", "Hours", "Status"],
-      ...attendanceRows(),
-      [],
-      ["Date", "Check in", "Check out", "Hours", "Status"],
-      ...attendanceHistory.map((r) => [r.date, r.in, r.out, r.hours, r.state]),
-    ]);
-    toast.success("Attendance exported as CSV");
-  };
-
-  const exportPdf = () => {
-    const ok = printTableAsPdf(
-      "Weekly attendance & punch log",
-      `${user?.name ?? "Employee"} · StaffLink`,
-      ["Day", "Check in", "Check out", "Hours", "Status"],
-      attendanceRows(),
-    );
-    if (!ok) toast.error("Allow pop-ups to export the PDF.");
-  };
-
   const filtered = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return requests;
@@ -296,31 +283,65 @@ function LeavesPage() {
     toast.success(`${chosen.length} request${chosen.length === 1 ? "" : "s"} ${status.toLowerCase()}`);
   };
 
+  const leaveTypeTranslations: Record<string, string> = {
+    "Annual": "إجازة سنوية",
+    "Casual": "إجازة عارضة",
+    "Sick": "إجازة مرضية",
+    "Unpaid": "إجازة بدون راتب",
+  };
+
+  const handleExportLeaves = () => {
+    const headers = lang === "ar"
+      ? ["نوع الإجازة", "الفترة", "عدد الأيام", "تاريخ التقديم", "الحالة", "السبب", "القرار"]
+      : ["Leave Type", "Period", "Days", "Submitted Date", "Status", "Reason", "Decision"];
+    const rows = filtered.map((r) => [
+      lang === "ar" ? (leaveTypeTranslations[r.leaveType] || r.leaveType) : r.leaveType,
+      r.period,
+      r.days,
+      r.submitted,
+      r.status,
+      r.reason,
+      r.decision,
+    ]);
+    downloadCsv(`StaffLink_Leaves_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
+    toast.success(lang === "ar" ? "تم تصدير سجلات الإجازات إلى ملف Excel بنجاح" : "Leave records exported to Excel successfully");
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
-        section="Leaves"
-        title="Leave management"
-        description="View your leave balances and request time off."
+        section={t("leaves", "Leaves")}
+        title={t("leavesTitle", "Leave management")}
+        description={
+          lang === "ar"
+            ? "استعراض أرصدة الإجازات المتاحة وتقديم طلبات الإجازة الرسمية."
+            : "View your leave balances and request time off."
+        }
         actions={
-          <Button variant="secondary" onClick={() => openLeaveForm()}>
-            <Plus className="size-4" />
-            <span>New request</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={handleExportLeaves} className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground">
+              <FileSpreadsheet className="size-4 me-1.5 text-emerald-400" />
+              <span>{lang === "ar" ? "تصدير إلى Excel" : "Export to Excel"}</span>
+            </Button>
+            <Button variant="secondary" onClick={() => openLeaveForm()}>
+              <Plus className="size-4 me-1.5" />
+              <span>{lang === "ar" ? "طلب إجازة جديد" : "New request"}</span>
+            </Button>
+          </div>
         }
       />
 
       <section id="leaves" className="surface-card p-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold">Leave balances</h2>
+          <h2 className="text-sm font-semibold">{t("leaveBalance", "Leave balances")}</h2>
         </div>
         <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {balances.map((b) => (
             <li key={b.type} className="rounded-xl border border-border p-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{b.type}</span>
+                <span className="font-medium">{lang === "ar" ? (leaveTypeTranslations[b.type] || b.type) : b.type}</span>
                 <span className="tabular-nums text-muted-foreground">
-                  {b.total - b.used} of {b.total} days left
+                  {lang === "ar" ? `${b.total - b.used} من أصل ${b.total} يوم متبقي` : `${b.total - b.used} of ${b.total} days left`}
                 </span>
               </div>
               <Progress value={(b.used / b.total) * 100} className="mt-3 h-1.5" />
@@ -332,16 +353,22 @@ function LeavesPage() {
       <div className="grid gap-4">
         <section className="surface-card overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
-            <h2 className="text-sm font-semibold">Leave request history</h2>
-            <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value.slice(0, 100))}
-                placeholder="Search requests…"
-                aria-label="Search requests"
-                className="h-9 rounded-xl pl-9"
-              />
+            <h2 className="text-sm font-semibold">{lang === "ar" ? "سجل طلبات الإجازات" : "Leave request history"}</h2>
+            <div className="flex items-center gap-2 ms-auto">
+              <Button size="sm" variant="outline" onClick={handleExportLeaves} className="h-9 rounded-xl text-xs">
+                <FileSpreadsheet className="size-3.5 me-1 text-emerald-600 dark:text-emerald-400" />
+                <span>{lang === "ar" ? "تصدير" : "Export"}</span>
+              </Button>
+              <div className="relative min-w-0 flex-1 sm:w-64">
+                <Search className="pointer-events-none absolute ltr:left-3 rtl:right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value.slice(0, 100))}
+                  placeholder={lang === "ar" ? "البحث في الطلبات..." : "Search requests…"}
+                  aria-label="Search requests"
+                  className="h-9 rounded-xl ltr:pl-9 rtl:pr-9 text-xs"
+                />
+              </div>
             </div>
           </div>
 
@@ -350,18 +377,20 @@ function LeavesPage() {
               <>
                 <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Approved")}>
                   <Check className="size-4" />
-                  <span>Approve</span>
+                  <span>{t("approved", "Approve")}</span>
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Rejected")}>
                   <X className="size-4" />
-                  <span>Reject</span>
+                  <span>{t("rejected", "Reject")}</span>
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-lg" onClick={() => bulkSet("Pending")}>
-                  <span>Reopen</span>
+                  <span>{lang === "ar" ? "إعادة فتح" : "Reopen"}</span>
                 </Button>
               </>
             ) : (
-              <span className="text-xs text-muted-foreground">Only managers can approve or reject requests.</span>
+              <span className="text-xs text-muted-foreground">
+                {lang === "ar" ? "فقط المديرون يمكنهم اعتماد أو رفض الطلبات." : "Only managers can approve or reject requests."}
+              </span>
             )}
           </BulkBar>
 
@@ -376,14 +405,14 @@ function LeavesPage() {
                       onCheckedChange={selection.toggleAll}
                     />
                   </TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Days</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Decision</TableHead>
+                  <TableHead>{lang === "ar" ? "الرقم المرجعي" : "Reference"}</TableHead>
+                  <TableHead>{t("category", "Type")}</TableHead>
+                  <TableHead>{lang === "ar" ? "الفترة" : "Period"}</TableHead>
+                  <TableHead>{t("requestDays", "Days")}</TableHead>
+                  <TableHead>{lang === "ar" ? "الرصيد" : "Balance"}</TableHead>
+                  <TableHead>{t("reason", "Reason")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead className="text-end">{lang === "ar" ? "قرار الاعتماد" : "Decision"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -433,7 +462,7 @@ function LeavesPage() {
                         {r.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       {canApprove && r.status === "Pending" ? (
                         <div className="flex justify-end gap-1.5">
                           <Button

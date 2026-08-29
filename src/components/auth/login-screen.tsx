@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { demoAccounts, roleLabels, useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
+import { LanguageMenu } from "@/components/layout/language-menu";
 
 export function LoginScreen() {
   const { signIn } = useAuth();
+  const { t, lang } = useI18n();
   const [email, setEmail] = useState("admin@stafflink.io");
   const [password, setPassword] = useState("stafflink");
   const [error, setError] = useState("");
@@ -15,7 +18,7 @@ export function LoginScreen() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const result = signIn(email, password);
-    if (!result.ok) setError(result.error ?? "Sign in failed.");
+    if (!result.ok) setError(result.error ?? (lang === "ar" ? "فشل تسجيل الدخول." : "Sign in failed."));
   };
 
   const selfService = demoAccounts.find((a) => a.role === "employee");
@@ -29,40 +32,41 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="grid min-h-dvh w-full lg:grid-cols-2">
-      <div className="gradient-header hidden flex-col justify-between p-10 text-brand-foreground lg:flex">
-        <div className="rounded-2xl bg-brand-foreground/95 p-5">
-          <img src="/logo.png" alt="StaffLink logo" className="w-full h-auto max-h-48 object-contain" />
-        </div>
-        <div className="max-w-md space-y-4">
-          <h2 className="text-3xl font-semibold leading-tight">
-            One workspace for Staff, payroll and performance.
-          </h2>
-          <p className="text-sm text-brand-foreground/75">
-            Role-based access keeps every team focused on the modules they own — from the HR
-            directory to payroll runs, geofenced attendance and executive analytics.
-          </p>
-        </div>
-        <p className="text-xs text-brand-foreground/60">Designed by Hafez Rahim</p>
+    <div className="grid min-h-dvh w-full lg:grid-cols-[1.45fr_1fr] xl:grid-cols-[1.65fr_1fr]">
+      <div className="relative hidden h-full w-full overflow-hidden bg-slate-950 lg:flex lg:items-center lg:justify-center">
+        {/* Full display crisp hero banner without transparency */}
+        <img
+          src="/hero-banner.jpg"
+          alt="StaffLink HRMS"
+          className="h-full w-full object-cover object-center"
+        />
       </div>
 
-      <div className="flex items-center justify-center bg-background p-6">
+      <div className="flex flex-col items-center justify-center bg-background p-6 relative">
+        <div className="absolute top-6 end-6">
+          <LanguageMenu />
+        </div>
+
         <div className="w-full max-w-sm space-y-6">
           <div className="space-y-3">
             <img
               src="/logo.png"
               alt="StaffLink logo"
-              className="h-20 w-auto object-contain object-left sm:h-24"
+              className="h-20 w-auto object-contain ltr:object-left rtl:object-right sm:h-24"
             />
-            <h1 className="text-2xl font-semibold tracking-tight">Sign in to StaffLink</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {lang === "ar" ? "تسجيل الدخول إلى StaffLink" : "Sign in to StaffLink"}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Use a demo account below to explore role-based access.
+              {lang === "ar" 
+                ? "اختر أحد الحسابات التجريبية بالأسفل لاختبار الصلاحيات المختلفة." 
+                : "Use a demo account below to explore role-based access."}
             </p>
           </div>
 
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} className="space-y-4 text-start">
             <div className="space-y-1.5">
-              <Label htmlFor="login-email">Work email</Label>
+              <Label htmlFor="login-email">{lang === "ar" ? "البريد الإلكتروني للعمل" : "Work email"}</Label>
               <Input
                 id="login-email"
                 type="email"
@@ -73,7 +77,7 @@ export function LoginScreen() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="login-password">Password</Label>
+              <Label htmlFor="login-password">{lang === "ar" ? "كلمة المرور" : "Password"}</Label>
               <Input
                 id="login-password"
                 type="password"
@@ -85,31 +89,15 @@ export function LoginScreen() {
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Button type="submit" className="w-full">
-              <LogIn className="size-4" />
-              <span>Sign in</span>
+              <LogIn className="size-4 me-2" />
+              <span>{lang === "ar" ? "تسجيل الدخول" : "Sign in"}</span>
             </Button>
           </form>
 
-          {selfService ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">or</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-              <Button type="button" variant="secondary" className="w-full" onClick={signInAsEmployee}>
-                <UserRound className="size-4" />
-                <span>Employee self-service sign-in</span>
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Punch in and out, upload your documents and view your own profile.
-              </p>
-            </div>
-          ) : null}
-
-          <div className="surface-card space-y-2 p-4">
+          <div className="surface-card space-y-2 p-4 text-start">
             <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <ShieldCheck className="size-3.5" /> Demo accounts · password “stafflink”
+              <ShieldCheck className="size-3.5" /> 
+              {lang === "ar" ? "حسابات تجريبية · كلمة المرور «stafflink»" : "Demo accounts · password “stafflink”"}
             </p>
             <div className="grid gap-1.5">
               {demoAccounts.map((a) => (
@@ -121,10 +109,10 @@ export function LoginScreen() {
                     setPassword(a.password);
                     setError("");
                   }}
-                  className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left text-xs transition-colors hover:bg-accent"
+                  className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-start text-xs transition-colors hover:bg-accent cursor-pointer"
                 >
                   <span className="font-medium">{a.email}</span>
-                  <span className="text-muted-foreground">{roleLabels[a.role]}</span>
+                  <span className="text-muted-foreground">{t(a.role, roleLabels[a.role])}</span>
                 </button>
               ))}
             </div>

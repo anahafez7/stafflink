@@ -5,8 +5,12 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight, Circle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+const DropdownMenu = ({ dir, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) => {
+  const { dir: i18nDir } = useI18n();
+  return <DropdownMenuPrimitive.Root dir={dir ?? i18nDir} {...props} />;
+};
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 

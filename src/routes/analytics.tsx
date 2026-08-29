@@ -24,19 +24,35 @@ export const Route = createFileRoute("/analytics")({
   component: AnalyticsPage,
 });
 
+import { useI18n } from "@/lib/i18n";
+
 function AnalyticsPage() {
+  const { t, lang } = useI18n();
   const maxDept = Math.max(...departmentSplit.map((d) => d.value));
+
+  const metricTranslations: Record<string, string> = {
+    "Headcount": "إجمالي القوى العاملة",
+    "Turnover Rate": "معدل دوران العمالة",
+    "Absenteeism": "نسبة الغياب",
+    "Time to Hire": "متوسط وقت التعيين",
+    "Cost per Hire": "تكلفة التعيين",
+    "Training Hours": "ساعات التدريب المكتملة",
+  };
 
   return (
     <div className="space-y-5">
       <PageHeader
-        section="Analytics"
-        title="Workforce analytics"
-        description="Executive insight across every StaffLink module."
+        section={t("analytics", "Analytics")}
+        title={t("analyticsTitle", "Workforce analytics")}
+        description={
+          lang === "ar"
+            ? "تقارير وتحليلات تنفيذية شاملة عبر جميع وحدات النظام."
+            : "Executive insight across every StaffLink module."
+        }
         actions={
           <Button variant="secondary">
             <Download className="size-4" />
-            <span>Export report</span>
+            <span>{lang === "ar" ? "تصدير التقرير" : "Export report"}</span>
           </Button>
         }
       />
@@ -44,7 +60,9 @@ function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {analyticsMetrics.map((m) => (
           <div key={m.metric} className="surface-card p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{m.metric}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {lang === "ar" ? (metricTranslations[m.metric] || m.metric) : m.metric}
+            </p>
             <p className="mt-2 text-2xl font-bold tabular-nums">{m.value}</p>
             <p
               className={`mt-1 flex items-center gap-1 text-xs font-medium ${
@@ -60,7 +78,7 @@ function AnalyticsPage() {
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <section className="surface-card p-5">
-          <h2 className="text-sm font-semibold">Headcount growth</h2>
+          <h2 className="text-sm font-semibold">{lang === "ar" ? "نمو القوى العاملة" : "Headcount growth"}</h2>
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={headcountTrend} margin={{ left: -18, right: 8 }}>
@@ -116,16 +134,16 @@ function AnalyticsPage() {
 
         <section className="surface-card overflow-hidden">
           <div className="border-b border-border p-4">
-            <h2 className="text-sm font-semibold">Branch scorecard</h2>
+            <h2 className="text-sm font-semibold">{lang === "ar" ? "بطاقة أداء الفروع" : "Branch scorecard"}</h2>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>Headcount</TableHead>
-                  <TableHead>Attendance</TableHead>
-                  <TableHead>Turnover</TableHead>
+                  <TableHead>{t("branch", "Branch")}</TableHead>
+                  <TableHead>{lang === "ar" ? "العدد" : "Headcount"}</TableHead>
+                  <TableHead>{t("attendance", "Attendance")}</TableHead>
+                  <TableHead>{lang === "ar" ? "معدل الدوران" : "Turnover"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

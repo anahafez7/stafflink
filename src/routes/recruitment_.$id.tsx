@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Clock, FileSpreadsheet } from "lucide-react";
+import { toast } from "sonner";
+import { downloadCsv } from "@/lib/export";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/recruitment_/$id")({
   component: RecruitmentDetailsPage,
@@ -28,45 +31,80 @@ const initialApplicants = [
 
 function RecruitmentDetailsPage() {
   const { id } = Route.useParams();
+  const { t, lang } = useI18n();
   const [applicants, setApplicants] = useState(initialApplicants);
 
   const updateStatus = (applicantId: string, newStatus: string) => {
     setApplicants(prev => prev.map(a => a.id === applicantId ? { ...a, status: newStatus } : a));
   };
 
+  const handleExportApplicants = () => {
+    const headers = lang === "ar"
+      ? ["الرمز", "اسم المتقدم", "المسمى الوظيفي", "سنوات الخبرة", "الموقع", "المهارات", "اللغات", "تاريخ التقديم", "نسبة التطابق", "الحالة"]
+      : ["Applicant ID", "Name", "Role", "Experience", "Location", "Skills", "Languages", "Applied At", "Match Score", "Status"];
+
+    const rows = applicants.map((a) => [
+      a.id,
+      a.name,
+      a.role,
+      a.experience,
+      a.location,
+      a.skills.join("; "),
+      a.languages.join("; "),
+      a.appliedAt,
+      a.score,
+      a.status,
+    ]);
+
+    downloadCsv(`StaffLink_Applicants_Job_${id}_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
+    toast.success(lang === "ar" ? "تم تصدير قائمة المتقدمين إلى Excel بنجاح" : "Applicants list exported to Excel successfully");
+  };
+
   return (
     <div className="space-y-5">
-      <Button variant="ghost" size="sm" className="mb-2 -ml-3 text-muted-foreground" asChild>
+      <Button variant="ghost" size="sm" className="mb-2 ltr:-ml-3 rtl:-mr-3 text-muted-foreground" asChild>
         <Link to="/recruitment">
-          <ArrowLeft className="mr-2 size-4" />
-          Back to Recruitment
+          <ArrowLeft className="me-2 size-4 rtl:rotate-180" />
+          {lang === "ar" ? "العودة للتوظيف" : "Back to Recruitment"}
         </Link>
       </Button>
       
       <PageHeader
-        section="Vacancy Details"
-        title={`Senior Backend Engineer (Vacancy #${id})`}
-        description="Showing all applicants for this position."
+        section={lang === "ar" ? "تفاصيل الوظيفة الشاغرة" : "Vacancy Details"}
+        title={lang === "ar" ? `مهندس برمجيات خلفية (وظيفة #${id})` : `Senior Backend Engineer (Vacancy #${id})`}
+        description={lang === "ar" ? "عرض جميع المتقدمين وتقييم المقابلات لهذه الوظيفة." : "Showing all applicants for this position."}
         actions={
-          <div className="flex gap-2">
-            <Button variant="secondary" className="bg-white text-slate-900 hover:bg-white/90">Edit vacancy</Button>
-            <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-0">Close vacancy</Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportApplicants}
+              className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground"
+            >
+              <FileSpreadsheet className="size-4 me-1.5 text-emerald-400" />
+              <span>{lang === "ar" ? "تصدير إلى Excel" : "Export to Excel"}</span>
+            </Button>
+            <Button variant="secondary" className="bg-white text-slate-900 hover:bg-white/90">
+              {lang === "ar" ? "تعديل الوظيفة" : "Edit vacancy"}
+            </Button>
+            <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-0">
+              {lang === "ar" ? "إغلاق الوظيفة" : "Close vacancy"}
+            </Button>
           </div>
         }
       />
 
       <section className="surface-card p-5">
-        <h2 className="text-sm font-semibold mb-4">Applicants List</h2>
+        <h2 className="text-sm font-semibold mb-4">{lang === "ar" ? "قائمة المتقدمين" : "Applicants List"}</h2>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader className="bg-secondary/50">
               <TableRow>
-                <TableHead>Applicant</TableHead>
-                <TableHead>Experience & Location</TableHead>
-                <TableHead>Skills & Languages</TableHead>
-                <TableHead>Applied</TableHead>
-                <TableHead>Match Score</TableHead>
-                <TableHead className="text-right">Status</TableHead>
+                <TableHead>{lang === "ar" ? "المتقدم" : "Applicant"}</TableHead>
+                <TableHead>{lang === "ar" ? "الخبرة والموقع" : "Experience & Location"}</TableHead>
+                <TableHead>{lang === "ar" ? "المهارات واللغات" : "Skills & Languages"}</TableHead>
+                <TableHead>{lang === "ar" ? "تاريخ التقديم" : "Applied"}</TableHead>
+                <TableHead>{lang === "ar" ? "نسبة التطابق" : "Match Score"}</TableHead>
+                <TableHead className="text-end">{t("status", "Status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -94,10 +132,10 @@ function RecruitmentDetailsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{applicant.appliedAt}</TableCell>
                   <TableCell className="text-muted-foreground">{applicant.score}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     <Select value={applicant.status} onValueChange={(val) => updateStatus(applicant.id, val)}>
                       <SelectTrigger 
-                        className={`w-32 h-7 px-2.5 py-0.5 ml-auto border rounded-full text-xs font-semibold focus:ring-0 ${
+                        className={`w-36 h-7 px-2.5 py-0.5 ms-auto border rounded-full text-xs font-semibold focus:ring-0 ${
                           applicant.status === "Offered" ? "border-success/40 text-success bg-transparent" :
                           applicant.status === "Rejected" ? "border-destructive/40 text-destructive bg-transparent" :
                           applicant.status === "Interviewing" ? "border-brand/40 text-brand bg-transparent" :
@@ -108,16 +146,16 @@ function RecruitmentDetailsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="In Review">
-                          <div className="flex items-center font-medium"><Clock className="mr-2 size-3.5" /> In Review</div>
+                          <div className="flex items-center font-medium"><Clock className="me-2 size-3.5" /> {lang === "ar" ? "قيد المراجعة" : "In Review"}</div>
                         </SelectItem>
                         <SelectItem value="Interviewing">
-                          <div className="flex items-center font-medium">Interviewing</div>
+                          <div className="flex items-center font-medium">{lang === "ar" ? "مقابلات" : "Interviewing"}</div>
                         </SelectItem>
                         <SelectItem value="Rejected">
-                          <div className="flex items-center font-medium"><XCircle className="mr-2 size-3.5" /> Rejected</div>
+                          <div className="flex items-center font-medium"><XCircle className="me-2 size-3.5" /> {lang === "ar" ? "مرفوض" : "Rejected"}</div>
                         </SelectItem>
                         <SelectItem value="Offered">
-                          <div className="flex items-center font-medium"><CheckCircle2 className="mr-2 size-3.5" /> Offered</div>
+                          <div className="flex items-center font-medium"><CheckCircle2 className="me-2 size-3.5" /> {lang === "ar" ? "تم تقديم عرض" : "Offered"}</div>
                         </SelectItem>
                       </SelectContent>
                     </Select>

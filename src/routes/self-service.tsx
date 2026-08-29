@@ -46,6 +46,7 @@ import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/lib/notifications";
 import { useBadges } from "@/lib/badges";
 import { useDeepLinkSection, useDeepLinkTarget } from "@/lib/deep-link";
+import { useI18n } from "@/lib/i18n";
 import {
   announcements,
   attendanceHistory,
@@ -108,48 +109,27 @@ const initialDevices = [
 function SelfServicePage() {
   const { user } = useAuth();
   const { notify } = useNotifications();
+  const { t, lang } = useI18n();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("30");
   const [devices, setDevices] = useState(initialDevices);
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
   const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
-  const [query, setQuery] = useState("");
   const [balances, setBalances] = useState(leaveBalances);
-  const [punchIn, setPunchIn] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [punchIn, setPunchIn] = useState<string | null>("08:42");
   const [punchOut, setPunchOut] = useState<string | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const [leaveType, setLeaveType] = useState(leaveBalances[0]?.type ?? "Annual");
+  const [leaveType, setLeaveType] = useState<LeaveRequest["leaveType"]>(leaveBalances[0]?.type ?? "Annual");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
   const [leaveStep, setLeaveStep] = useState(1);
   const now = useNow();
-  const { setPendingLeaves } = useBadges();
-  const focusedRequest = useDeepLinkTarget("request");
+
   useDeepLinkSection();
-
-  useEffect(() => {
-    setPendingLeaves(requests.filter((r) => r.status === "Pending").length);
-  }, [requests, setPendingLeaves]);
-
-  useEffect(() => {
-    const expiring = documentsList.filter((d) => d.status !== "Valid").length;
-    if (expiring > 0) {
-      notify(
-        "documents",
-        "Document expiry alert",
-        `${expiring} document${expiring === 1 ? "" : "s"} need renewal.`,
-        documentsList.find((d) => d.status !== "Valid")?.name,
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const openLeaveForm = () => {
-    setLeaveStep(1);
-    setLeaveOpen(true);
-  };
+  const focusedRequest = useDeepLinkTarget("leaves");
 
   const leaveDays =
     leaveFrom && leaveTo
@@ -162,46 +142,55 @@ function SelfServicePage() {
   const stepValid = (step: number) => {
     if (step === 1) return Boolean(leaveType);
     if (step === 2) return Boolean(leaveFrom && leaveTo && leaveDays > 0);
-    return leaveReason.trim().length >= 5;
+    return leaveReason.trim().length >= 3;
+  };
+
+  const openLeaveForm = (presetType?: LeaveRequest["leaveType"]) => {
+    if (presetType) setLeaveType(presetType);
+    setLeaveStep(1);
+    setLeaveOpen(true);
   };
 
   const handlePunch = () => {
+    const tTime = clockTime();
     if (!punchIn) {
-      const t = clockTime();
-      setPunchIn(t);
-      toast.success(`Checked in at ${t}`);
-      notify("attendance", "Checked in", `Your check-in was recorded at ${t}.`, today());
+      setPunchIn(tTime);
+      toast.success(lang === "ar" ? `تم تسجيل الحضور في ${tTime}` : `Checked in at ${tTime}`);
+      notify("attendance", "Checked in", `Your check-in was recorded at ${tTime}.`, today());
       return;
     }
     if (!punchOut) {
-      const t = clockTime();
-      setPunchOut(t);
-      toast.success(`Checked out at ${t}`);
-      notify("attendance", "Checked out", `Your check-out was recorded at ${t}.`, today());
+      setPunchOut(tTime);
+      toast.success(lang === "ar" ? `تم تسجيل الانصراف في ${tTime}` : `Checked out at ${tTime}`);
+      notify("attendance", "Checked out", `Your check-out was recorded at ${tTime}.`, today());
       return;
     }
-    toast.info("You already completed today's shift.");
+    toast.info(lang === "ar" ? "لقد أكملت مناوبة اليوم بالفعل." : "You already completed today's shift.");
   };
 
   const submitLeave = () => {
     if (!leaveFrom || !leaveTo) {
-      toast.error("Pick a start and end date.");
+      toast.error(lang === "ar" ? "حدد تاريخ البداية والنهاية." : "Pick a start and end date.");
       return;
     }
-    if (leaveReason.trim().length < 5) {
-      toast.error("Add a short reason (at least 5 characters).");
+    if (leaveReason.trim().length < 3) {
+      toast.error(lang === "ar" ? "أدخل سبباً مختصراً للإجازة." : "Add a short reason.");
       return;
     }
     const start = new Date(leaveFrom);
     const end = new Date(leaveTo);
     if (end < start) {
-      toast.error("End date must be after the start date.");
+      toast.error(lang === "ar" ? "تاريخ النهاية يجب أن يكون بعد البداية." : "End date must be after the start date.");
       return;
     }
     const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
     const balance = balances.find((b) => b.type === leaveType);
     if (balance && balance.used + days > balance.total) {
-      toast.error(`Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`);
+      toast.error(
+        lang === "ar"
+          ? `المتبقي ${balance.total - balance.used} يوم فقط من إجازة ${leaveType}.`
+          : `Only ${balance.total - balance.used} ${leaveType.toLowerCase()} days left.`,
+      );
       return;
     }
     const remaining = balance ? balance.total - balance.used : 0;
@@ -218,7 +207,7 @@ function SelfServicePage() {
         submitted: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
         balanceBefore: remaining,
         balanceAfter: remaining - days,
-        decision: "Awaiting manager approval",
+        decision: lang === "ar" ? "في انتظار اعتماد المدير" : "Awaiting manager approval",
       },
       ...prev,
     ]);
@@ -227,14 +216,18 @@ function SelfServicePage() {
     setLeaveTo("");
     setLeaveReason("");
     setLeaveStep(1);
-    toast.success(`${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`);
-    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} day${days === 1 ? "" : "s"} awaiting approval.`, id);
+    toast.success(
+      lang === "ar"
+        ? `تم تقديم طلب إجازة ${leaveType} · ${days} يوم`
+        : `${leaveType} leave requested · ${days} day${days === 1 ? "" : "s"}`,
+    );
+    notify("leaves", "Leave request submitted", `${leaveType} leave · ${days} days awaiting approval.`, id);
   };
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
     if (ids.length === 0) return;
     if (status !== "Pending") {
-      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request${ids.length === 1 ? "" : "s"} ${status.toLowerCase()}.`, ids[0]);
+      notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request(s) ${status.toLowerCase()}.`, ids[0]);
     }
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const deltas = new Map<string, number>();
@@ -252,8 +245,8 @@ function SelfServicePage() {
           status,
           decision:
             status === "Pending"
-              ? "Reopened · awaiting manager approval"
-              : `${status} by ${user?.name ?? "Manager"} · ${stamp}`,
+              ? lang === "ar" ? "أعيد فتح الطلب · بانتظار الاعتماد" : "Reopened · awaiting manager approval"
+              : `${status === "Approved" ? (lang === "ar" ? "تم الاعتماد" : "Approved") : (lang === "ar" ? "تم الرفض" : "Rejected")} ${lang === "ar" ? "بواسطة" : "by"} ${user?.name ?? "Manager"} · ${stamp}`,
         };
       }),
     );
@@ -276,7 +269,7 @@ function SelfServicePage() {
       ["Date", "Check in", "Check out", "Hours", "Status"],
       ...attendanceHistory.map((r) => [r.date, r.in, r.out, r.hours, r.state]),
     ]);
-    toast.success("Attendance exported as CSV");
+    toast.success(lang === "ar" ? "تم تصدير سجل الحضور بصيغة CSV" : "Attendance exported as CSV");
   };
 
   const exportPdf = () => {
@@ -305,19 +298,23 @@ function SelfServicePage() {
     const chosen = selection.selected;
     applyDecision(chosen, status);
     selection.clear();
-    toast.success(`${chosen.length} request${chosen.length === 1 ? "" : "s"} ${status.toLowerCase()}`);
+    toast.success(`${chosen.length} request(s) ${status.toLowerCase()}`);
   };
 
   return (
     <div className="space-y-5">
       <PageHeader
-        section="Self Service"
-        title="Employee self service"
-        description="Everything an employee needs, in three clicks or fewer."
+        section={t("selfService", "Self Service")}
+        title={t("selfServiceTitle", "Employee self service")}
+        description={
+          lang === "ar"
+            ? "كل ما يحتاجه الموظف لإدارة طلباته وسجلاته اليومية في مكان واحد."
+            : "Everything an employee needs, in three clicks or fewer."
+        }
         actions={
           <Button variant="secondary" onClick={() => openLeaveForm()}>
             <Plus className="size-4" />
-            <span>New request</span>
+            <span>{lang === "ar" ? "طلب جديد" : "New request"}</span>
           </Button>
         }
       />
@@ -326,19 +323,19 @@ function SelfServicePage() {
         <section id="attendance" className="surface-card scroll-mt-20 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">Check in / out</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Cairo HQ · Web punch</p>
+              <h2 className="text-sm font-semibold">{lang === "ar" ? "تسجيل الحضور / الانصراف" : "Check in / out"}</h2>
+              <p className="mt-1 text-xs text-muted-foreground">{lang === "ar" ? "المقر الرئيسي - القاهرة · بصمة ويب" : "Cairo HQ · Web punch"}</p>
             </div>
             <span className="text-2xl font-semibold tabular-nums">{now}</span>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-border p-3">
-              <p className="text-xs text-muted-foreground">Checked in</p>
+              <p className="text-xs text-muted-foreground">{t("checkInTime", "Checked in")}</p>
               <p className="mt-1 text-lg font-semibold tabular-nums">{punchIn ?? "—"}</p>
             </div>
             <div className="rounded-xl border border-border p-3">
-              <p className="text-xs text-muted-foreground">Checked out</p>
+              <p className="text-xs text-muted-foreground">{t("checkOutTime", "Checked out")}</p>
               <p className="mt-1 text-lg font-semibold tabular-nums">{punchOut ?? "—"}</p>
             </div>
           </div>
@@ -350,7 +347,13 @@ function SelfServicePage() {
             onClick={handlePunch}
           >
             {punchIn && !punchOut ? <LogOut className="size-4" /> : <LogIn className="size-4" />}
-            <span>{!punchIn ? "Check in" : !punchOut ? "Check out" : "Shift completed"}</span>
+            <span>
+              {!punchIn 
+                ? (lang === "ar" ? "تسجيل حضور" : "Check in") 
+                : !punchOut 
+                  ? (lang === "ar" ? "تسجيل انصراف" : "Check out") 
+                  : (lang === "ar" ? "اكتملت المناوبة" : "Shift completed")}
+            </span>
           </Button>
 
           <ul className="mt-4 divide-y divide-border">
@@ -360,7 +363,7 @@ function SelfServicePage() {
                 <span className="tabular-nums">
                   {d.in} – {d.out}
                 </span>
-                <span className="ml-auto tabular-nums text-muted-foreground">{d.hours}</span>
+                <span className="ms-auto tabular-nums text-muted-foreground">{d.hours}</span>
                 <Badge
                   variant="outline"
                   className={
@@ -371,7 +374,7 @@ function SelfServicePage() {
                         : "border-success/40 text-success"
                   }
                 >
-                  {d.state}
+                  {d.state === "On time" ? (lang === "ar" ? "في الموعد" : d.state) : d.state}
                 </Badge>
               </li>
             ))}
@@ -388,8 +391,6 @@ function SelfServicePage() {
             </Button>
           </div>
         </section>
-
-
       </div>
 
       <AttendanceCalendar records={attendanceHistory} />
@@ -416,15 +417,15 @@ function SelfServicePage() {
       <div className="grid gap-4">
         <section id="leaves" className="surface-card scroll-mt-20 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
-            <h2 className="text-sm font-semibold">Leave request history</h2>
-            <div className="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">{lang === "ar" ? "سجل طلبات الإجازات" : "Leave request history"}</h2>
+            <div className="relative ms-auto min-w-0 flex-1 sm:max-w-xs">
+              <Search className="pointer-events-none absolute ltr:left-3 rtl:right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value.slice(0, 100))}
-                placeholder="Search requests…"
+                placeholder={lang === "ar" ? "البحث في الطلبات..." : "Search requests…"}
                 aria-label="Search requests"
-                className="h-9 rounded-xl pl-9"
+                className="h-9 rounded-xl ltr:pl-9 rtl:pr-9"
               />
             </div>
           </div>
@@ -542,7 +543,7 @@ function SelfServicePage() {
                   <TableHead>Balance</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Decision</TableHead>
+                  <TableHead className="text-end">Decision</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -592,7 +593,7 @@ function SelfServicePage() {
                         {r.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       {canApprove && r.status === "Pending" ? (
                         <div className="flex justify-end gap-1.5">
                           <Button

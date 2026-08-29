@@ -23,6 +23,7 @@ import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { InstallProvider } from "@/lib/pwa-install";
 import { NotificationProvider } from "@/lib/notifications";
 import { BadgeProvider } from "@/lib/badges";
+import { I18nProvider } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -150,16 +151,18 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <InstallProvider>
-            <BadgeProvider>
-              <AppShell />
-              <Toaster />
-            </BadgeProvider>
-          </InstallProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <InstallProvider>
+              <BadgeProvider>
+                <AppShell />
+                <Toaster />
+              </BadgeProvider>
+            </InstallProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

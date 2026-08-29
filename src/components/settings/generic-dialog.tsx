@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface GenericDialogProps {
   open: boolean;
@@ -14,8 +15,10 @@ interface GenericDialogProps {
 }
 
 export function GenericDialog({ open, onOpenChange, title, description, fields }: GenericDialogProps) {
+  const { lang } = useI18n();
+
   const handleSave = () => {
-    toast.success(`${title} saved successfully.`);
+    toast.success(lang === "ar" ? `تم حفظ ${title} بنجاح.` : `${title} saved successfully.`);
     onOpenChange(false);
   };
 
@@ -38,8 +41,8 @@ export function GenericDialog({ open, onOpenChange, title, description, fields }
 
         <div className="flex items-center justify-end border-t border-border bg-muted/30 px-6 py-4">
           <Button onClick={handleSave} className="bg-brand hover:bg-brand/90 text-white">
-            <Check className="mr-2 size-4" />
-            Save Changes
+            <Check className="me-2 size-4" />
+            {lang === "ar" ? "حفظ التغييرات" : "Save Changes"}
           </Button>
         </div>
       </DialogContent>

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Pencil, Plus, Search, Tag, Trash2, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
+import { downloadCsv } from "@/lib/export";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { BulkBar } from "@/components/data/bulk-bar";
@@ -61,8 +62,11 @@ const statusStyles: Record<string, string> = {
   Probation: "border-primary/40 text-primary",
 };
 
+import { useI18n } from "@/lib/i18n";
+
 function HRPage() {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
   const [rows, setRows] = useState<Employee[]>(seedEmployees);
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("all");
@@ -137,15 +141,37 @@ function HRPage() {
 
   const exportSelection = () => {
     const target = selection.count ? filtered.filter((e) => selection.isSelected(e.id)) : filtered;
-    toast.success(`Exported ${target.length} record${target.length === 1 ? "" : "s"} to CSV`);
+    const headers = lang === "ar"
+      ? ["الرقم الوظيفي", "الاسم", "البريد الإلكتروني", "المسمى الوظيفي", "القسم", "الفرع", "الحالة", "تاريخ الانضمام"]
+      : ["Employee ID", "Name", "Email", "Role", "Department", "Branch", "Status", "Join Date"];
+    const exportRows = target.map((e) => [
+      e.id,
+      e.name,
+      e.email,
+      e.role,
+      e.department,
+      e.branch,
+      e.status,
+      e.joined,
+    ]);
+    downloadCsv(`StaffLink_Employees_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...exportRows]);
+    toast.success(
+      lang === "ar" 
+        ? `تم تصدير ${target.length} سجل موظف إلى ملف Excel بنجاح` 
+        : `Exported ${target.length} employee record${target.length === 1 ? "" : "s"} to Excel (.csv)`
+    );
   };
 
   return (
     <div className="space-y-5">
       <PageHeader
-        section="HR"
-        title="Employee directory"
-        description={`${filtered.length} of ${rows.length} records · ${branches.length} branches · ${departments.length} departments`}
+        section={t("hr", "HR")}
+        title={t("directoryTitle", "Employee directory")}
+        description={
+          lang === "ar"
+            ? `${filtered.length} من أصل ${rows.length} سجلات · ${branches.length} فروع · ${departments.length} أقسام`
+            : `${filtered.length} of ${rows.length} records · ${branches.length} branches · ${departments.length} departments`
+        }
         actions={
           <>
             <Button
@@ -155,16 +181,16 @@ function HRPage() {
                 setDialogOpen(true);
               }}
             >
-              <Plus className="size-4" />
-              <span>New employee</span>
+              <Plus className="size-4 me-1.5" />
+              <span>{t("addEmployee", "New employee")}</span>
             </Button>
             <Button
               variant="outline"
               className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground"
               onClick={exportSelection}
             >
-              <Download className="size-4" />
-              <span>Export</span>
+              <Download className="size-4 me-1.5" />
+              <span>{lang === "ar" ? "تصدير إلى Excel" : "Export to Excel"}</span>
             </Button>
           </>
         }
@@ -174,46 +200,50 @@ function HRPage() {
         <div className="space-y-3 border-b border-border p-4">
           <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute ltr:left-3 rtl:right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value.slice(0, 100))}
-              placeholder="Search name, ID, email, designation, branch or tag…"
+              placeholder={lang === "ar" ? "البحث بالاسم، الرقم الوظيفي، البريد، أو الفرع..." : "Search name, ID, email, designation, branch or tag…"}
               aria-label="Search employees"
-              className="h-10 rounded-xl pl-9"
+              className="h-10 rounded-xl ltr:pl-9 rtl:pr-9"
             />
           </div>
           <Select value={department} onValueChange={setDepartment}>
             <SelectTrigger className="h-10 w-[160px] rounded-xl" aria-label="Filter by department">
-              <SelectValue placeholder="Department" />
+              <SelectValue placeholder={t("department", "Department")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All departments</SelectItem>
+              <SelectItem value="all">{lang === "ar" ? "جميع الأقسام" : "All departments"}</SelectItem>
               {departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={branch} onValueChange={setBranch}>
             <SelectTrigger className="h-10 w-[140px] rounded-xl" aria-label="Filter by branch">
-              <SelectValue placeholder="Branch" />
+              <SelectValue placeholder={t("branch", "Branch")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All branches</SelectItem>
+              <SelectItem value="all">{lang === "ar" ? "جميع الفروع" : "All branches"}</SelectItem>
               {branches.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="h-10 w-[130px] rounded-xl" aria-label="Filter by status">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("status", "Status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {["Active", "On Leave", "Probation"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              <SelectItem value="all">{lang === "ar" ? "جميع الحالات" : "All statuses"}</SelectItem>
+              {["Active", "On Leave", "Probation"].map((s) => (
+                <SelectItem key={s} value={s}>
+                  {lang === "ar" ? (s === "Active" ? "نشط" : s === "On Leave" ? "في إجازة" : "تحت التجربة") : s}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {hasFilters ? (
             <Button variant="ghost" className="h-10 rounded-xl" onClick={resetFilters}>
               <X className="size-4" />
-              <span>Reset</span>
+              <span>{t("cancel", "Reset")}</span>
             </Button>
           ) : null}
           </div>
@@ -271,19 +301,19 @@ function HRPage() {
                     onCheckedChange={selection.toggleAll}
                   />
                 </TableHead>
-                <TableHead>Employee</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{lang === "ar" ? "الموظف" : "Employee"}</TableHead>
+                <TableHead>{t("department", "Department")}</TableHead>
+                <TableHead>{t("branch", "Branch")}</TableHead>
+                <TableHead>{lang === "ar" ? "الوسوم" : "Tags"}</TableHead>
+                <TableHead>{t("status", "Status")}</TableHead>
+                <TableHead className="text-end">{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                    No employees match this search.
+                    {lang === "ar" ? "لا يوجد موظفون يطابقون نتائج البحث." : "No employees match this search."}
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -345,7 +375,7 @@ function HRPage() {
                       {e.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
+                  <TableCell className="text-end" onClick={(event) => event.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
