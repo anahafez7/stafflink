@@ -113,7 +113,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const raw = localStorage.getItem(storageKey);
-    setSettings(raw ? { ...defaults, ...(JSON.parse(raw) as Partial<NotificationSettings>) } : defaults);
+    setSettings(raw ? normalizeSettings(JSON.parse(raw)) : defaults);
   }, [storageKey]);
 
   useEffect(() => {
@@ -134,16 +134,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [inboxKey],
   );
 
-  const setSetting = useCallback(
-    (key: keyof NotificationSettings, value: boolean) => {
-      setSettings((prev) => {
-        const next = { ...prev, [key]: value };
-        localStorage.setItem(storageKey, JSON.stringify(next));
-        return next;
-      });
-      trackEvent("notification_setting_changed", { key, value });
+  const persistSettings = useCallback(
+    (next: NotificationSettings) => {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
     },
     [storageKey],
+  );
+
+  const setChannelPref = useCallback(
+    (channel: NotificationChannel, kind: keyof ChannelPrefs, value: boolean) => {
+      setSettings((prev) =>
+        persistSettings({
+          ...prev,
+          channels: { ...prev.channels, [channel]: { ...prev.channels[channel], [kind]: value } },
+        }),
+      );
+      trackEvent("notification_setting_changed", { key: `${channel}.${kind}`, value });
+    },
+    [persistSettings],
+  );
+
+  const setQuietHours = useCallback(
+    (value: boolean) => {
+      setSettings((prev) => persistSettings({ ...prev, quietHours: value }));
+      trackEvent("notification_setting_changed", { key: "quietHours", value });
+    },
+    [persistSettings],
   );
 
   const requestPermission = useCallback(async () => {
