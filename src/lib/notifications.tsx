@@ -216,15 +216,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const notify = useCallback(
     (channel: NotificationChannel, title: string, body: string, itemId?: string) => {
-      if (!settings[channel]) return;
+      const prefs = settings.channels[channel];
+      if (!prefs.inbox && !prefs.push) return;
       if (settings.quietHours && isQuiet()) return;
       const url = notificationLink(channel, itemId, user?.role);
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      setAllItems((prev) =>
-        persistInbox([{ id, channel, title, body, url, at: new Date().toISOString(), read: false }, ...prev]),
-      );
+      if (prefs.inbox) {
+        setAllItems((prev) =>
+          persistInbox([{ id, channel, title, body, url, at: new Date().toISOString(), read: false }, ...prev]),
+        );
+      }
       trackEvent("notification_shown", { channel, itemId: itemId ?? null, url });
 
+      if (!prefs.push) return;
       if (digest.enabled) return;
       if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
       const n = new Notification(title, {
@@ -253,6 +257,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const unread = allItems.filter((i) => !i.read && !i.archived);
     trackEvent("notification_digest_sent", { count: unread.length });
     setDigest({ lastSentAt: new Date().toISOString() });
+
+    // Email copy of the digest, when a provider is configured on this device.
+    const config = loadEmailConfig();
+    if (config.enabled) {
+      const forDate = digest.testDate || new Date().toISOString().slice(0, 10);
+      void sendDigestEmail({
+        config,
+        subject: `StaffLink daily digest · ${forDate}`,
+        text: digestEmailBody(unread, forDate),
+        testDate: forDate,
+      });
+    }
+
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
     const n = new Notification("StaffLink daily digest", {
       body: unread.length
@@ -267,7 +284,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       n.close();
       router.history.push("/settings");
     };
-  }, [allItems, setDigest, router]);
+  }, [allItems, setDigest, router, digest.testDate]);
 
   // Fire the digest once per day when the chosen time has passed.
   useEffect(() => {
