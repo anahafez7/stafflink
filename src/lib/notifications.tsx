@@ -41,15 +41,34 @@ export const channelMeta: { key: NotificationChannel; label: string; hint: strin
 ];
 
 const defaults: NotificationSettings = {
-  attendance: true,
-  leaves: true,
-  documents: true,
+  channels: {
+    attendance: { inbox: true, push: true },
+    leaves: { inbox: true, push: true },
+    documents: { inbox: true, push: true },
+  },
   quietHours: false,
 };
 
+/** Accepts the older boolean-per-channel shape stored on existing devices. */
+function normalizeSettings(raw: unknown): NotificationSettings {
+  if (!raw || typeof raw !== "object") return defaults;
+  const value = raw as Record<string, unknown>;
+  const channels = { ...defaults.channels };
+  for (const key of Object.keys(channels) as NotificationChannel[]) {
+    const stored = (value["channels"] as Record<string, unknown> | undefined)?.[key] ?? value[key];
+    if (typeof stored === "boolean") channels[key] = { inbox: stored, push: stored };
+    else if (stored && typeof stored === "object") {
+      const pref = stored as Partial<ChannelPrefs>;
+      channels[key] = { inbox: pref.inbox ?? true, push: pref.push ?? true };
+    }
+  }
+  return { channels, quietHours: Boolean(value["quietHours"]) };
+}
+
 type Ctx = {
   settings: NotificationSettings;
-  setSetting: (key: keyof NotificationSettings, value: boolean) => void;
+  setChannelPref: (channel: NotificationChannel, kind: keyof ChannelPrefs, value: boolean) => void;
+  setQuietHours: (value: boolean) => void;
   permission: NotificationPermission | "unsupported";
   requestPermission: () => Promise<void>;
   notify: (channel: NotificationChannel, title: string, body: string, itemId?: string) => void;
