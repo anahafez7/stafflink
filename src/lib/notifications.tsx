@@ -4,10 +4,17 @@ import { useRouter } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { notificationLink } from "@/lib/deep-link";
 import { trackEvent } from "@/lib/analytics";
+import { digestEmailBody, loadEmailConfig, sendDigestEmail } from "@/lib/email-delivery";
 
 export type NotificationChannel = "attendance" | "leaves" | "documents";
 
-export type NotificationSettings = Record<NotificationChannel, boolean> & { quietHours: boolean };
+/** Inbox and push can be toggled independently for every notification type. */
+export type ChannelPrefs = { inbox: boolean; push: boolean };
+
+export type NotificationSettings = {
+  channels: Record<NotificationChannel, ChannelPrefs>;
+  quietHours: boolean;
+};
 
 export type DigestSettings = {
   enabled: boolean;
@@ -35,15 +42,34 @@ export const channelMeta: { key: NotificationChannel; label: string; hint: strin
 ];
 
 const defaults: NotificationSettings = {
-  attendance: true,
-  leaves: true,
-  documents: true,
+  channels: {
+    attendance: { inbox: true, push: true },
+    leaves: { inbox: true, push: true },
+    documents: { inbox: true, push: true },
+  },
   quietHours: false,
 };
 
+/** Accepts the older boolean-per-channel shape stored on existing devices. */
+function normalizeSettings(raw: unknown): NotificationSettings {
+  if (!raw || typeof raw !== "object") return defaults;
+  const value = raw as Record<string, unknown>;
+  const channels = { ...defaults.channels };
+  for (const key of Object.keys(channels) as NotificationChannel[]) {
+    const stored = (value["channels"] as Record<string, unknown> | undefined)?.[key] ?? value[key];
+    if (typeof stored === "boolean") channels[key] = { inbox: stored, push: stored };
+    else if (stored && typeof stored === "object") {
+      const pref = stored as Partial<ChannelPrefs>;
+      channels[key] = { inbox: pref.inbox ?? true, push: pref.push ?? true };
+    }
+  }
+  return { channels, quietHours: Boolean(value["quietHours"]) };
+}
+
 type Ctx = {
   settings: NotificationSettings;
-  setSetting: (key: keyof NotificationSettings, value: boolean) => void;
+  setChannelPref: (channel: NotificationChannel, kind: keyof ChannelPrefs, value: boolean) => void;
+  setQuietHours: (value: boolean) => void;
   permission: NotificationPermission | "unsupported";
   requestPermission: () => Promise<void>;
   notify: (channel: NotificationChannel, title: string, body: string, itemId?: string) => void;
@@ -88,7 +114,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const raw = localStorage.getItem(storageKey);
-    setSettings(raw ? { ...defaults, ...(JSON.parse(raw) as Partial<NotificationSettings>) } : defaults);
+    setSettings(raw ? normalizeSettings(JSON.parse(raw)) : defaults);
   }, [storageKey]);
 
   useEffect(() => {
@@ -109,16 +135,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [inboxKey],
   );
 
-  const setSetting = useCallback(
-    (key: keyof NotificationSettings, value: boolean) => {
-      setSettings((prev) => {
-        const next = { ...prev, [key]: value };
-        localStorage.setItem(storageKey, JSON.stringify(next));
-        return next;
-      });
-      trackEvent("notification_setting_changed", { key, value });
+  const persistSettings = useCallback(
+    (next: NotificationSettings) => {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
     },
     [storageKey],
+  );
+
+  const setChannelPref = useCallback(
+    (channel: NotificationChannel, kind: keyof ChannelPrefs, value: boolean) => {
+      setSettings((prev) =>
+        persistSettings({
+          ...prev,
+          channels: { ...prev.channels, [channel]: { ...prev.channels[channel], [kind]: value } },
+        }),
+      );
+      trackEvent("notification_setting_changed", { key: `${channel}.${kind}`, value });
+    },
+    [persistSettings],
+  );
+
+  const setQuietHours = useCallback(
+    (value: boolean) => {
+      setSettings((prev) => persistSettings({ ...prev, quietHours: value }));
+      trackEvent("notification_setting_changed", { key: "quietHours", value });
+    },
+    [persistSettings],
   );
 
   const requestPermission = useCallback(async () => {
@@ -174,15 +217,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const notify = useCallback(
     (channel: NotificationChannel, title: string, body: string, itemId?: string) => {
-      if (!settings[channel]) return;
+      const prefs = settings.channels[channel];
+      if (!prefs.inbox && !prefs.push) return;
       if (settings.quietHours && isQuiet()) return;
       const url = notificationLink(channel, itemId, user?.role);
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      setAllItems((prev) =>
-        persistInbox([{ id, channel, title, body, url, at: new Date().toISOString(), read: false }, ...prev]),
-      );
+      if (prefs.inbox) {
+        setAllItems((prev) =>
+          persistInbox([{ id, channel, title, body, url, at: new Date().toISOString(), read: false }, ...prev]),
+        );
+      }
       trackEvent("notification_shown", { channel, itemId: itemId ?? null, url });
 
+      if (!prefs.push) return;
       if (digest.enabled) return;
       if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
       const n = new Notification(title, {
@@ -211,6 +258,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const unread = allItems.filter((i) => !i.read && !i.archived);
     trackEvent("notification_digest_sent", { count: unread.length });
     setDigest({ lastSentAt: new Date().toISOString() });
+
+    // Email copy of the digest, when a provider is configured on this device.
+    const config = loadEmailConfig();
+    if (config.enabled) {
+      const forDate = digest.testDate || new Date().toISOString().slice(0, 10);
+      void sendDigestEmail({
+        config,
+        subject: `StaffLink daily digest · ${forDate}`,
+        text: digestEmailBody(unread, forDate),
+        testDate: forDate,
+      });
+    }
+
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
     const n = new Notification("StaffLink daily digest", {
       body: unread.length
@@ -225,7 +285,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       n.close();
       router.history.push("/settings");
     };
-  }, [allItems, setDigest, router]);
+  }, [allItems, setDigest, router, digest.testDate]);
 
   // Fire the digest once per day when the chosen time has passed.
   useEffect(() => {
@@ -248,7 +308,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       settings,
-      setSetting,
+      setChannelPref,
+      setQuietHours,
       permission,
       requestPermission,
       notify,
@@ -266,7 +327,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }),
     [
       settings,
-      setSetting,
+      setChannelPref,
+      setQuietHours,
       permission,
       requestPermission,
       notify,
