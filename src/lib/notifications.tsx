@@ -7,7 +7,13 @@ import { trackEvent } from "@/lib/analytics";
 
 export type NotificationChannel = "attendance" | "leaves" | "documents";
 
-export type NotificationSettings = Record<NotificationChannel, boolean> & { quietHours: boolean };
+/** Inbox and push can be toggled independently for every notification type. */
+export type ChannelPrefs = { inbox: boolean; push: boolean };
+
+export type NotificationSettings = {
+  channels: Record<NotificationChannel, ChannelPrefs>;
+  quietHours: boolean;
+};
 
 export type DigestSettings = {
   enabled: boolean;
