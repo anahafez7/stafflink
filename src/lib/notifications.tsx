@@ -4,6 +4,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { notificationLink } from "@/lib/deep-link";
 import { trackEvent } from "@/lib/analytics";
+import { digestEmailBody, loadEmailConfig, sendDigestEmail } from "@/lib/email-delivery";
 
 export type NotificationChannel = "attendance" | "leaves" | "documents";
 
@@ -307,7 +308,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       settings,
-      setSetting,
+      setChannelPref,
+      setQuietHours,
       permission,
       requestPermission,
       notify,
@@ -325,7 +327,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }),
     [
       settings,
-      setSetting,
+      setChannelPref,
+      setQuietHours,
       permission,
       requestPermission,
       notify,
