@@ -15,8 +15,8 @@ export function useLeaveRequests() {
 
 export type DayPunch = { in: string | null; out: string | null; method?: string };
 
-export function usePunches(email = "guest") {
-  return useSharedState<Record<string, DayPunch>>(`stafflink.punches.${email}`, {});
+export function usePunches(email?: string) {
+  return useSharedState<Record<string, DayPunch>>(`stafflink.punches.${email ?? "guest"}`, {});
 }
 
 const toMin = (t: string) => {

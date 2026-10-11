@@ -19,7 +19,7 @@ const tone = (s: string) =>
           ? "border-success/40 text-success"
           : "text-muted-foreground";
 
-export function Timesheet({ email }: { email?: string }) {
+export function Timesheet({ email }: { email?: string | undefined }) {
   const [punches] = usePunches(email);
   const [range, setRange] = useState("7");
   const rows = useMemo(() => buildTimesheet(punches, Number(range)), [punches, range]);
