@@ -47,6 +47,8 @@ import { useNotifications } from "@/lib/notifications";
 import { useBadges } from "@/lib/badges";
 import { useDeepLinkSection, useDeepLinkTarget } from "@/lib/deep-link";
 import { useI18n } from "@/lib/i18n";
+import { canDecideLeave, useLeaveRequests, usePunches, type DayPunch } from "@/lib/workflows";
+import { Timesheet } from "@/components/self-service/timesheet";
 import {
   announcements,
   attendanceHistory,
@@ -108,18 +110,22 @@ const initialDevices = [
 
 function SelfServicePage() {
   const { user } = useAuth();
-  const { notify } = useNotifications();
+  const { notify, resolveTarget } = useNotifications();
   const { t, lang } = useI18n();
   const [twoFactor, setTwoFactor] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("30");
   const [devices, setDevices] = useState(initialDevices);
   const canApprove = user ? user.role === "manager" || user.role === "hr_manager" || user.role === "admin" : false;
-  const [requests, setRequests] = useState<LeaveRequest[]>(leaveHistory);
+  const [requests, setRequests] = useLeaveRequests();
   const [balances, setBalances] = useState(leaveBalances);
   const [query, setQuery] = useState("");
-  const [punchIn, setPunchIn] = useState<string | null>("08:42");
-  const [punchOut, setPunchOut] = useState<string | null>(null);
+  const [punches, setPunches] = usePunches(user?.email);
+  const punchIn = punches[today()]?.in ?? null;
+  const punchOut = punches[today()]?.out ?? null;
+  const setPunchIn = (v: string) => setPunches((p) => ({ ...p, [today()]: { in: v, out: null, method: "Web punch" } }));
+  const setPunchOut = (v: string) =>
+    setPunches((p) => ({ ...p, [today()]: { ...(p[today()] ?? { in: v }), out: v } as DayPunch }));
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<LeaveRequest["leaveType"]>(leaveBalances[0]?.type ?? "Annual");
   const [leaveFrom, setLeaveFrom] = useState("");
@@ -226,7 +232,12 @@ function SelfServicePage() {
 
   const applyDecision = (ids: string[], status: LeaveRequest["status"]) => {
     if (ids.length === 0) return;
+    if (!canDecideLeave(user?.role)) {
+      toast.error("Only managers can approve or reject leave requests.");
+      return;
+    }
     if (status !== "Pending") {
+      ids.forEach((id) => resolveTarget(id));
       notify("leaves", `Leave ${status.toLowerCase()}`, `${ids.length} request(s) ${status.toLowerCase()}.`, ids[0]);
     }
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -415,6 +426,8 @@ function SelfServicePage() {
       </div>
 
       <div className="grid gap-4">
+        <Timesheet email={user?.email} />
+
         <section id="leaves" className="surface-card scroll-mt-20 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
             <h2 className="text-sm font-semibold">{lang === "ar" ? "سجل طلبات الإجازات" : "Leave request history"}</h2>
