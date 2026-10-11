@@ -80,6 +80,7 @@ type Ctx = {
   markUnread: (id: string) => void;
   setArchived: (id: string, archived: boolean) => void;
   markAllRead: () => void;
+  resolveTarget: (itemId: string) => void;
   clearInbox: () => void;
   digest: DigestSettings;
   setDigest: (next: Partial<DigestSettings>) => void;
@@ -186,6 +187,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       trackEvent("notification_archived", { id, archived });
       setAllItems((prev) => persistInbox(prev.map((i) => (i.id === id ? { ...i, archived } : i))));
     },
+    [persistInbox],
+  );
+
+  const resolveTarget = useCallback(
+    (itemId: string) =>
+      setAllItems((prev) =>
+        persistInbox(prev.map((i) => (i.url?.includes(encodeURIComponent(itemId)) || i.url?.includes(itemId) ? { ...i, read: true } : i))),
+      ),
     [persistInbox],
   );
 
@@ -320,6 +329,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markUnread,
       setArchived,
       markAllRead,
+      resolveTarget,
       clearInbox,
       digest,
       setDigest,
@@ -339,6 +349,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markUnread,
       setArchived,
       markAllRead,
+      resolveTarget,
       clearInbox,
       digest,
       setDigest,

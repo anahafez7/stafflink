@@ -47,7 +47,7 @@ import { useI18n } from "@/lib/i18n";
 
 /** Per-user push notification preferences, permission status and the manual install action. */
 export function NotificationSettings() {
-  const { settings, setSetting, permission, requestPermission, notify, digest, setDigest, sendDigestNow, unreadCount } =
+  const { settings, setChannelPref, setQuietHours, permission, requestPermission, notify, digest, setDigest, sendDigestNow, unreadCount } =
     useNotifications();
   const { canInstall, installed, promptInstall } = useInstall();
   const { t, lang } = useI18n();
@@ -133,11 +133,24 @@ export function NotificationSettings() {
                 <p className="truncate text-sm font-medium">{trans.label}</p>
                 <p className="truncate text-xs text-muted-foreground">{trans.hint}</p>
               </div>
-              <Switch
-                checked={settings[c.key]}
-                onCheckedChange={(v) => setSetting(c.key, v)}
-                aria-label={trans.label}
-              />
+              <div className="flex shrink-0 items-center gap-4 text-xs text-muted-foreground">
+                <label className="flex items-center gap-2">
+                  <span>Inbox</span>
+                  <Switch
+                    checked={settings.channels[c.key].inbox}
+                    onCheckedChange={(v) => setChannelPref(c.key, "inbox", v)}
+                    aria-label={`${trans.label} inbox`}
+                  />
+                </label>
+                <label className="flex items-center gap-2">
+                  <span>Push</span>
+                  <Switch
+                    checked={settings.channels[c.key].push}
+                    onCheckedChange={(v) => setChannelPref(c.key, "push", v)}
+                    aria-label={`${trans.label} push`}
+                  />
+                </label>
+              </div>
             </li>
           );
         })}
@@ -148,7 +161,7 @@ export function NotificationSettings() {
           </div>
           <Switch
             checked={settings.quietHours}
-            onCheckedChange={(v) => setSetting("quietHours", v)}
+            onCheckedChange={(v) => setQuietHours(v)}
             aria-label="Quiet hours"
           />
         </li>

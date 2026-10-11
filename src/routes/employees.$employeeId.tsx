@@ -30,6 +30,7 @@ import {
 } from "@/data/employee-detail";
 import type { EmployeeDoc } from "@/data/employee-detail";
 import { downloadCsv, printTableAsPdf } from "@/lib/export";
+import { PayslipHistory } from "@/components/hr/payslip-history";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/employees/$employeeId")({
@@ -751,6 +752,7 @@ function EmployeeDetailPage() {
               </TableBody>
             </Table>
           </section>
+          <PayslipHistory employee={employee} period={payPeriod} onSelect={setPayPeriod} />
         </TabsContent>
 
         <TabsContent value="location" className="space-y-4">
