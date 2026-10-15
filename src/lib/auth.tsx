@@ -171,42 +171,59 @@ export const moduleHome = (role: Role) => {
 type AuthValue = {
   user: SessionUser | null;
   ready: boolean;
-  signIn: (email: string, password: string) => { ok: boolean; error?: string };
+  signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => void;
   can: (module: ModuleKey) => boolean;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
-const STORAGE_KEY = "stafflink.session";
+
+const toSession = (email?: string | null): SessionUser | null => {
+  const match = demoAccounts.find((a) => a.email.toLowerCase() === (email ?? "").toLowerCase());
+  if (!match) return null;
+  const { password: _pw, ...session } = match;
+  return session;
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as SessionUser);
-    } catch {
-      /* ignore corrupted session */
-    }
-    setReady(true);
+    let cancelled = false;
+    void import("@/integrations/supabase/client").then(({ supabase }) => {
+      if (cancelled) return;
+      supabase.auth.getSession().then(({ data }) => {
+        setUser(toSession(data.session?.user.email));
+        setReady(true);
+      });
+      const { data } = supabase.auth.onAuthStateChange((_e, session) => setUser(toSession(session?.user.email)));
+      unsub = () => data.subscription.unsubscribe();
+    });
+    let unsub = () => {};
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
-  const signIn = useCallback((email: string, password: string) => {
-    const match = demoAccounts.find(
-      (a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.password === password,
-    );
-    if (!match) return { ok: false, error: "Invalid email or password." };
-    const { password: _pw, ...session } = match;
-    setUser(session);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const clean = email.trim().toLowerCase();
+    const backendPw = `${password}#StaffLink-Cloud`;
+    let { error } = await supabase.auth.signInWithPassword({ email: clean, password: backendPw });
+    if (error && demoAccounts.some((a) => a.email === clean && a.password === password)) {
+      const { ensureDemoAccount } = await import("@/lib/demo-accounts.functions");
+      const res = await ensureDemoAccount({ data: { email: clean, password } });
+      if (res.ok) ({ error } = await supabase.auth.signInWithPassword({ email: clean, password: backendPw }));
+    }
+    if (error) return { ok: false, error: "Invalid email or password." };
     return { ok: true };
   }, []);
 
   const signOut = useCallback(() => {
     setUser(null);
-    window.localStorage.removeItem(STORAGE_KEY);
+    void import("@/integrations/supabase/client").then(({ supabase }) => supabase.auth.signOut());
   }, []);
 
   const value = useMemo<AuthValue>(
