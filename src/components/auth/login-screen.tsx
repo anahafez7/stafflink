@@ -15,19 +15,20 @@ export function LoginScreen() {
   const [password, setPassword] = useState("stafflink");
   const [error, setError] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = signIn(email, password);
+    setError("");
+    const result = await signIn(email, password);
     if (!result.ok) setError(result.error ?? (lang === "ar" ? "فشل تسجيل الدخول." : "Sign in failed."));
   };
 
   const selfService = demoAccounts.find((a) => a.role === "employee");
 
-  const signInAsEmployee = () => {
+  const signInAsEmployee = async () => {
     if (!selfService) return;
     setEmail(selfService.email);
     setPassword(selfService.password);
-    const result = signIn(selfService.email, selfService.password);
+    const result = await signIn(selfService.email, selfService.password);
     if (!result.ok) setError(result.error ?? "Sign in failed.");
   };
 
