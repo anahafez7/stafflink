@@ -5,7 +5,7 @@ import { demoAccounts } from "@/lib/auth";
 
 /** Creates (once) the real backend account for one of the built-in demo logins. */
 export const ensureDemoAccount = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ email: z.string().email(), password: z.string().min(1) }).parse(d))
+  .validator((d: unknown) => z.object({ email: z.string().email(), password: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const match = demoAccounts.find(
       (a) => a.email.toLowerCase() === data.email.trim().toLowerCase() && a.password === data.password,
