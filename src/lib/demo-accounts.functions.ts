@@ -18,7 +18,6 @@ export const ensureDemoAccount = createServerFn({ method: "POST" })
       email_confirm: true,
       user_metadata: { name: match.name },
     });
-    if (created.error) console.error("createUser", created.error.message);
     let userId = created.data.user?.id;
     if (!userId) {
       const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 200 });
