@@ -210,11 +210,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     const { supabase } = await import("@/integrations/supabase/client");
     const clean = email.trim().toLowerCase();
-    let { error } = await supabase.auth.signInWithPassword({ email: clean, password });
+    const backendPw = `${password}#StaffLink-Cloud`;
+    let { error } = await supabase.auth.signInWithPassword({ email: clean, password: backendPw });
     if (error && demoAccounts.some((a) => a.email === clean && a.password === password)) {
       const { ensureDemoAccount } = await import("@/lib/demo-accounts.functions");
       const res = await ensureDemoAccount({ data: { email: clean, password } });
-      if (res.ok) ({ error } = await supabase.auth.signInWithPassword({ email: clean, password }));
+      if (res.ok) ({ error } = await supabase.auth.signInWithPassword({ email: clean, password: backendPw }));
     }
     if (error) return { ok: false, error: "Invalid email or password." };
     return { ok: true };

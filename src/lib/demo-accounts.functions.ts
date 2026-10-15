@@ -14,7 +14,7 @@ export const ensureDemoAccount = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const created = await supabaseAdmin.auth.admin.createUser({
       email: match.email,
-      password: match.password,
+      password: `${match.password}#StaffLink-Cloud`,
       email_confirm: true,
       user_metadata: { name: match.name },
     });
